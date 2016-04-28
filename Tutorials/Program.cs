@@ -11,12 +11,12 @@ namespace Tutorials
     {
         private static void Main()
         {
-            Chapter1(); // Storing keys.
+            Part1(); // Storing keys.
 
             Console.ReadLine();
         }
 
-        private static void Chapter1()
+        private static void Part1()
         {
             var walletFilePath = @"Wallets\hiddenWallet.hid"; // extension can be anything
             var recoveredWalletFilePath = @"Wallets\sameWallet.hid";

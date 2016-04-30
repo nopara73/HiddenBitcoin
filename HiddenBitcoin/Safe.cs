@@ -3,14 +3,13 @@ using System.IO;
 using HiddenBitcoin.DataClasses;
 using HiddenBitcoin.Helpers;
 using NBitcoin;
-using Network = NBitcoin.Network;
 
 namespace HiddenBitcoin
 {
     public class Safe
     {
         private Mnemonic _mnemonic;
-        private Network _network;
+        private NBitcoin.Network _network;
 
         private Safe(string password, string walletFilePath, DataClasses.Network network, string mnemonicString = null)
         {

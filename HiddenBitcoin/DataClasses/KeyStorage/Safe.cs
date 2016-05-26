@@ -1,22 +1,18 @@
 ﻿using System;
 using System.IO;
-using HiddenBitcoin.Helpers;
 using NBitcoin;
 
 namespace HiddenBitcoin.DataClasses.KeyStorage
 {
     public class Safe
     {
-        private Mnemonic _mnemonic;
         private NBitcoin.Network _network;
 
         private Safe(string password, string walletFilePath, Network network, string mnemonicString = null)
         {
             SetNetwork(network);
 
-            if (mnemonicString == null)
-                _mnemonic = SetSeed(password);
-            else
+            if (mnemonicString != null)
             {
                 SetSeed(password, mnemonicString);
             }
@@ -27,7 +23,6 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
         public ExtKey SeedExtKey { get; private set; }
         public string Seed => SeedExtKey.GetWif(_network).ToWif();
         public string SeedPublicKey => SeedExtKey.Neuter().GetWif(_network).ToWif();
-        public string Mnemonic => _mnemonic.ToString();
         public string WalletFilePath { get; private set; }
 
         public Network Network
@@ -42,7 +37,7 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
             }
         }
 
-        private static void Save(string mnemonic, string password, string walletFilePath, Network network)
+        private void Save(string password, string walletFilePath, Network network)
         {
             if (File.Exists(walletFilePath))
                 throw new Exception("WalletFileAlreadyExists");
@@ -50,10 +45,18 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
             var directoryPath = Path.GetDirectoryName(Path.GetFullPath(walletFilePath));
             if (directoryPath != null) Directory.CreateDirectory(directoryPath);
 
-            var encryptedMnemonic = StringCipher.Encrypt(mnemonic, password);
+            Key privateKey = SeedExtKey.PrivateKey;
+            byte[] chainCode = SeedExtKey.ChainCode;
+
+            string encryptedBitcoinPrivateKeyString = privateKey.GetEncryptedBitcoinSecret(password, _network).ToWif();
+            string chainCodeString = Convert.ToBase64String(chainCode);
+
             var networkString = network.ToString();
 
-            WalletFileSerializer.Serialize(walletFilePath, encryptedMnemonic, networkString);
+            WalletFileSerializer.Serialize(walletFilePath,
+                encryptedBitcoinPrivateKeyString,
+                chainCodeString,
+                networkString);
         }
 
         public static Safe Load(string password, string walletFilePath)
@@ -62,9 +65,11 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
                 throw new Exception("WalletFileDoesNotExists");
 
             var walletFileRawContent = WalletFileSerializer.Deserialize(walletFilePath);
+            
+            string encryptedBitcoinPrivateKeyString = walletFileRawContent.Seed;
+            string chainCodeString = walletFileRawContent.ChainCode;
 
-            var encryptedMnemonic = walletFileRawContent.Seed;
-            var mnemonic = StringCipher.Decrypt(encryptedMnemonic, password);
+            byte[] chainCode = Convert.FromBase64String(chainCodeString);
 
             Network network;
             var networkString = walletFileRawContent.Network;
@@ -74,28 +79,43 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
                 network = Network.TestNet;
             else throw new Exception("NotRecognizedNetworkInWalletFile");
 
-            return new Safe(password, walletFilePath, network, mnemonic);
+            Safe safe = new Safe(password, walletFilePath, network);
+
+            Key privateKey = Key.Parse(encryptedBitcoinPrivateKeyString, password, safe._network);
+            ExtKey seedExtKey = new ExtKey(privateKey, chainCode);
+            safe.SetSeed(seedExtKey);
+
+            return safe;
         }
 
         /// <summary>
-        ///     Creates a mnemonic, encrypts it with the password, and stores it in the path.
+        ///     Creates a mnemonic, a seed, encrypts it and stores in the specified path.
         /// </summary>
         /// <param name="password"></param>
         /// <param name="walletFilePath"></param>
         /// <param name="network"></param>
-        /// <returns></returns>
-        public static Safe Create(string password, string walletFilePath,
-            Network network = Network.MainNet)
+        /// <returns>Safe and Mnemonic</returns>
+        public static InitialSafe Create(string password, string walletFilePath, Network network)
         {
             var safe = new Safe(password, walletFilePath, network);
-            Save(safe.Mnemonic, password, walletFilePath, network);
-            return safe;
+
+            Mnemonic mnemonic = safe.SetSeed(password);
+
+            safe.Save(password, walletFilePath, network);
+
+            var initialSafe = new InitialSafe
+            {
+                Mnemonic = mnemonic.ToString(),
+                Safe = safe
+            };
+
+            return initialSafe;
         }
 
         public static Safe Recover(string mnemonic, string password, string walletFilePath, Network network)
         {
             var safe = new Safe(password, walletFilePath, network, mnemonic);
-            Save(mnemonic, password, walletFilePath, network);
+            safe.Save(password, walletFilePath, network);
             return safe;
         }
 
@@ -105,12 +125,14 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
                 mnemonicString == null
                     ? new Mnemonic(Wordlist.English, WordCount.Twelve)
                     : new Mnemonic(mnemonicString);
-
-            _mnemonic = mnemonic;
-
+            
             SeedExtKey = mnemonic.DeriveExtKey(password);
 
             return mnemonic;
+        }
+        private void SetSeed(ExtKey seedExtKey)
+        {
+            SeedExtKey = seedExtKey;
         }
 
         private void SetNetwork(Network network)

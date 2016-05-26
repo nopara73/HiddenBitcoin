@@ -59,29 +59,41 @@ namespace Tutorials
 
                 // Create a safe at the specified path with a password on the specified network
                 // The Safe class helps you mange your seed properly
-                // More accurately it stores a password encrypted mnemonic.
-                // I like to call the safe file wallet file, because the user might encounter it and it is familiar with this terminology.
-                var hiddenSafe = Safe.Create(password, walletFilePath, network);
+                // I like to call the safe file as wallet file, 
+                // because the user might encounter with it and he is familiar with this terminology.
+                InitialSafe initialHiddenSafe = Safe.Create(password, walletFilePath, network);
 
-                // Safe creation has created a mnemonic, too, you can use it to recover or duplicate the safe
-                Console.WriteLine(hiddenSafe.Mnemonic);
+                // Safe creation has created a mnemonic, too, you can use it to recover (or duplicate) the safe
+                string mnemonic = initialHiddenSafe.Mnemonic;
+                Console.WriteLine(mnemonic);
+
+                // After the mnemonic is used, you should work with the safe inside the initial safe
+                // since this one does not cointain the mnemonic
+                Safe hiddenSafe = initialHiddenSafe.Safe;
 
                 // Let's recover the safe to an other file
-                var mnemonic = hiddenSafe.Mnemonic;
-                var recoveredSafe = Safe.Recover(mnemonic, password, recoveredWalletFilePath, network);
+                Safe recoveredSafe = Safe.Recover(mnemonic, password, recoveredWalletFilePath, network);
 
                 // You can also load an existing safe from file with your password
-                var loadedSafe = Safe.Load(password, walletFilePath);
+                Safe loadedSafe = Safe.Load(password, walletFilePath);
 
                 // After we load a safe it's not a bad idea to check if it is on the expected network
                 if (network != loadedSafe.Network)
                     throw new Exception("WrongNetwork");
 
-                // Finally let's write out the seed
-                // The seed, what we want to protect so much
-                // The seed, why we have 7 lines of code above instead of just one.
+                // Finally let's write out the seed bitcoin private key
                 Console.WriteLine(loadedSafe.Seed);
+                // You can generate addresses with the public key, but you cannot spend them
                 Console.WriteLine(loadedSafe.SeedPublicKey);
+
+                //Safe[] safes = new[] {hiddenSafe, recoveredSafe, loadedSafe};
+                //foreach (var safe in safes)
+                //{
+                //    Console.WriteLine(safe.Network);
+                //    Console.WriteLine(safe.Seed);
+                //    Console.WriteLine(safe.SeedPublicKey);
+                //    Console.WriteLine(safe.WalletFilePath);
+                //}
             }
             finally
             {

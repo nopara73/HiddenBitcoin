@@ -2,7 +2,6 @@
 
 using System;
 using System.IO;
-using HiddenBitcoin;
 using HiddenBitcoin.DataClasses;
 
 namespace Tutorials
@@ -11,9 +10,38 @@ namespace Tutorials
     {
         private static void Main()
         {
-            Part1(); // Storing keys.
+            //Part1(); // Storing keys
+            Part2(); // Monitoring keys
 
             Console.ReadLine();
+        }
+
+        private static void Part2()
+        {
+            var walletFilePath = @"Wallets\hiddenWallet.hid"; // extension can be anything
+
+            try
+            {
+                // Monitor class monitors the blockchain
+
+
+
+                var password = "ILoveHiddenWallet";
+                var mnemonic = "teach track round spend push kangaroo quit volume defy want badge excuse";
+
+                // Let's recover a safe I have created before and sent there testnet coins
+                var safe = Safe.Recover(mnemonic, password, walletFilePath, Network.TestNet);
+
+                // WalletMonitor class monitors a safe
+                // Safe class helps you store and manage the seed
+                // WalletMonitor does only need the public key of the seed
+                var walletMonitor = new WalletMonitor(safe.SeedPublicKey);
+            }
+            finally
+            {
+                // Cleanup in order to be able to execute this chapter repeatedly
+                File.Delete(walletFilePath);
+            }
         }
 
         private static void Part1()

@@ -1,17 +1,16 @@
 ﻿using System;
 using System.IO;
-using HiddenBitcoin.DataClasses;
 using HiddenBitcoin.Helpers;
 using NBitcoin;
 
-namespace HiddenBitcoin
+namespace HiddenBitcoin.DataClasses
 {
     public class Safe
     {
         private Mnemonic _mnemonic;
         private NBitcoin.Network _network;
 
-        private Safe(string password, string walletFilePath, DataClasses.Network network, string mnemonicString = null)
+        private Safe(string password, string walletFilePath, Network network, string mnemonicString = null)
         {
             SetNetwork(network);
 
@@ -31,19 +30,19 @@ namespace HiddenBitcoin
         public string Mnemonic => _mnemonic.ToString();
         public string WalletFilePath { get; private set; }
 
-        public DataClasses.Network Network
+        public Network Network
         {
             get
             {
                 if (_network == NBitcoin.Network.Main)
-                    return DataClasses.Network.MainNet;
+                    return Network.MainNet;
                 if (_network == NBitcoin.Network.TestNet)
-                    return DataClasses.Network.TestNet;
+                    return Network.TestNet;
                 throw new InvalidOperationException("WrongNetwork");
             }
         }
 
-        private static void Save(string mnemonic, string password, string walletFilePath, DataClasses.Network network)
+        private static void Save(string mnemonic, string password, string walletFilePath, Network network)
         {
             if (File.Exists(walletFilePath))
                 throw new Exception("WalletFileAlreadyExists");
@@ -67,12 +66,12 @@ namespace HiddenBitcoin
             var encryptedMnemonic = walletFileRawContent.Seed;
             var mnemonic = StringCipher.Decrypt(encryptedMnemonic, password);
 
-            DataClasses.Network network;
+            Network network;
             var networkString = walletFileRawContent.Network;
-            if (networkString == DataClasses.Network.MainNet.ToString())
-                network = DataClasses.Network.MainNet;
-            else if (networkString == DataClasses.Network.TestNet.ToString())
-                network = DataClasses.Network.TestNet;
+            if (networkString == Network.MainNet.ToString())
+                network = Network.MainNet;
+            else if (networkString == Network.TestNet.ToString())
+                network = Network.TestNet;
             else throw new Exception("NotRecognizedNetworkInWalletFile");
 
             return new Safe(password, walletFilePath, network, mnemonic);
@@ -86,14 +85,14 @@ namespace HiddenBitcoin
         /// <param name="network"></param>
         /// <returns></returns>
         public static Safe Create(string password, string walletFilePath,
-            DataClasses.Network network = DataClasses.Network.MainNet)
+            Network network = Network.MainNet)
         {
             var safe = new Safe(password, walletFilePath, network);
             Save(safe.Mnemonic, password, walletFilePath, network);
             return safe;
         }
 
-        public static Safe Recover(string mnemonic, string password, string walletFilePath, DataClasses.Network network)
+        public static Safe Recover(string mnemonic, string password, string walletFilePath, Network network)
         {
             var safe = new Safe(password, walletFilePath, network, mnemonic);
             Save(mnemonic, password, walletFilePath, network);
@@ -114,11 +113,11 @@ namespace HiddenBitcoin
             return mnemonic;
         }
 
-        private void SetNetwork(DataClasses.Network network)
+        private void SetNetwork(Network network)
         {
-            if (network == DataClasses.Network.MainNet)
+            if (network == Network.MainNet)
                 _network = NBitcoin.Network.Main;
-            else if (network == DataClasses.Network.TestNet)
+            else if (network == Network.TestNet)
                 _network = NBitcoin.Network.TestNet;
             else throw new Exception("WrongNetwork");
         }

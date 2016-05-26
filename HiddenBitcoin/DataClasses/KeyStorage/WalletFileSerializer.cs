@@ -19,9 +19,11 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
         public string ChainCode { get; set; }
         public string Network { get; set; }
 
-        internal static void Serialize(string walletFilePath, string encryptedBitcoinPrivateKey, string chainCode, string network)
+        internal static void Serialize(string walletFilePath, string encryptedBitcoinPrivateKey, string chainCode,
+            string network)
         {
-            var content = JsonConvert.SerializeObject(new WalletFileSerializer(encryptedBitcoinPrivateKey, chainCode, network));
+            var content =
+                JsonConvert.SerializeObject(new WalletFileSerializer(encryptedBitcoinPrivateKey, chainCode, network));
 
             if (File.Exists(walletFilePath))
                 throw new Exception("WalletFileAlreadyExists");
@@ -40,7 +42,8 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
             var contentString = File.ReadAllText(path);
             var walletFileSerializer = JsonConvert.DeserializeObject<WalletFileSerializer>(contentString);
 
-            return new WalletFileSerializer(walletFileSerializer.Seed, walletFileSerializer.ChainCode, walletFileSerializer.Network);
+            return new WalletFileSerializer(walletFileSerializer.Seed, walletFileSerializer.ChainCode,
+                walletFileSerializer.Network);
         }
     }
 }

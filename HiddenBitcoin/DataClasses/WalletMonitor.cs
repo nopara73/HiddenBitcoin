@@ -7,7 +7,10 @@ namespace HiddenBitcoin.DataClasses
 {
     public class WalletMonitor : Monitor
     {
+        private readonly KeySetClient _keySet;
         private readonly NBitcoin.Network _network;
+        private readonly QBitNinjaClient _qBitNinjaClient;
+
         public Network Network
         {
             get
@@ -19,16 +22,14 @@ namespace HiddenBitcoin.DataClasses
                 throw new InvalidOperationException("WrongNetwork");
             }
         }
-        private BitcoinExtPubKey SeedBitcoinExtPubKey { get; }
 
-        private readonly QBitNinjaClient _qBitNinjaClient;
-        private readonly KeySetClient _keySet;
+        private BitcoinExtPubKey SeedBitcoinExtPubKey { get; }
 
         public WalletMonitor(string seedPublicKey)
         {
             SeedBitcoinExtPubKey = new BitcoinExtPubKey(seedPublicKey);
             _network = SeedBitcoinExtPubKey.Network;
-            _qBitNinjaClient =  new QBitNinjaClient(_network);
+            _qBitNinjaClient = new QBitNinjaClient(_network);
 
             var walletName = KeyGenerator.GetUniqueKey(12);
             var wallet = _qBitNinjaClient.GetWalletClient(walletName);
@@ -37,7 +38,7 @@ namespace HiddenBitcoin.DataClasses
             _keySet = wallet.GetKeySetClient("main");
 
             // ReSharper disable once CoVariantArrayConversion
-            _keySet.CreateIfNotExists(new[] { SeedBitcoinExtPubKey.ExtPubKey }).Wait();
+            _keySet.CreateIfNotExists(new[] {SeedBitcoinExtPubKey.ExtPubKey}).Wait();
 
             //var foo = wallet.GetBalanceSummary().Result;
             //var balance = foo.UnConfirmed.Amount.ToDecimal(MoneyUnit.BTC);
@@ -52,7 +53,6 @@ namespace HiddenBitcoin.DataClasses
             //{
             //    Console.WriteLine(addr.Address);
             //}
-
         }
 
         // Monitor
@@ -85,7 +85,5 @@ namespace HiddenBitcoin.DataClasses
         // After MaxKeyNumber reached problem! you can only migrate
         //
         // sync happens by events, when anything changes, you should catch and handle it
-
-
     }
 }

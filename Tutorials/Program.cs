@@ -26,7 +26,6 @@ namespace Tutorials
                 // Monitor class monitors the blockchain
 
 
-
                 var password = "ILoveHiddenWallet";
                 var mnemonic = "teach track round spend push kangaroo quit volume defy want badge excuse";
 
@@ -61,21 +60,21 @@ namespace Tutorials
                 // The Safe class helps you mange your seed properly
                 // I like to call the safe file as wallet file, 
                 // because the user might encounter with it and he is familiar with this terminology.
-                InitialSafe initialHiddenSafe = Safe.Create(password, walletFilePath, network);
+                var initialHiddenSafe = Safe.Create(password, walletFilePath, network);
 
                 // Safe creation has created a mnemonic, too, you can use it to recover (or duplicate) the safe
-                string mnemonic = initialHiddenSafe.Mnemonic;
+                var mnemonic = initialHiddenSafe.Mnemonic;
                 Console.WriteLine(mnemonic);
 
                 // After the mnemonic is used, you should work with the safe inside the initial safe
                 // since this one does not cointain the mnemonic
-                Safe hiddenSafe = initialHiddenSafe.Safe;
+                var hiddenSafe = initialHiddenSafe.Safe;
 
                 // Let's recover the safe to an other file
-                Safe recoveredSafe = Safe.Recover(mnemonic, password, recoveredWalletFilePath, network);
+                var recoveredSafe = Safe.Recover(mnemonic, password, recoveredWalletFilePath, network);
 
                 // You can also load an existing safe from file with your password
-                Safe loadedSafe = Safe.Load(password, walletFilePath);
+                var loadedSafe = Safe.Load(password, walletFilePath);
 
                 // After we load a safe it's not a bad idea to check if it is on the expected network
                 if (network != loadedSafe.Network)

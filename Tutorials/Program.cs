@@ -11,8 +11,8 @@ namespace Tutorials
     {
         private static void Main()
         {
-            //Part1(); // Storing keys
-            Part2(); // Monitoring keys
+            Part1(); // Storing keys
+            //Part2(); // Monitoring keys
 
             Console.ReadLine();
         }

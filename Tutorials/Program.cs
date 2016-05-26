@@ -60,15 +60,15 @@ namespace Tutorials
                 // The Safe class helps you mange your seed properly
                 // I like to call the safe file as wallet file, 
                 // because the user might encounter with it and he is familiar with this terminology.
-                var initialHiddenSafe = Safe.Create(password, walletFilePath, network);
+                var initialSafe = Safe.Create(password, walletFilePath, network);
 
                 // Safe creation has created a mnemonic, too, you can use it to recover (or duplicate) the safe
-                var mnemonic = initialHiddenSafe.Mnemonic;
+                var mnemonic = initialSafe.Mnemonic;
                 Console.WriteLine(mnemonic);
 
                 // After the mnemonic is used, you should work with the safe inside the initial safe
                 // since this one does not cointain the mnemonic
-                var hiddenSafe = initialHiddenSafe.Safe;
+                var safe = initialSafe.Safe;
 
                 // Let's recover the safe to an other file
                 var recoveredSafe = Safe.Recover(mnemonic, password, recoveredWalletFilePath, network);
@@ -84,6 +84,12 @@ namespace Tutorials
                 Console.WriteLine(loadedSafe.Seed);
                 // You can generate addresses with the public key, but you cannot spend them
                 Console.WriteLine(loadedSafe.SeedPublicKey);
+
+                // You can get the dark wallet type stealth address of the safe
+                Console.WriteLine(loadedSafe.StealthAddress);
+                // Also the scan and spendkey
+                Console.WriteLine(loadedSafe.ScanPrivateKey);
+                Console.WriteLine(loadedSafe.SpendPrivateKey);
 
                 //Safe[] safes = new[] {hiddenSafe, recoveredSafe, loadedSafe};
                 //foreach (var safe in safes)

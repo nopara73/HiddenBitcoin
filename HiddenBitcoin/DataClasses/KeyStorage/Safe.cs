@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using NBitcoin;
+using NBitcoin.Stealth;
 
 namespace HiddenBitcoin.DataClasses.KeyStorage
 {
@@ -24,6 +25,26 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
         public string Seed => SeedExtKey.GetWif(_network).ToWif();
         public string SeedPublicKey => SeedExtKey.Neuter().GetWif(_network).ToWif();
         public string WalletFilePath { get; private set; }
+
+        #region Stealth
+
+        // As long as the safe is fully trusted no need different keys scan and spendkey
+        // ReSharper disable InconsistentNaming
+        private Key _spendPrivateKey => SeedExtKey.PrivateKey;
+        public string SpendPrivateKey => _spendPrivateKey.GetWif(_network).ToWif();
+        private Key _scanPrivateKey => _spendPrivateKey;
+        public string ScanPrivateKey => _scanPrivateKey.GetWif(_network).ToWif();
+        // ReSharper restore InconsistentNaming
+
+        public string StealthAddress => new BitcoinStealthAddress
+            (
+                scanKey: _scanPrivateKey.PubKey,
+                pubKeys: new[] { _spendPrivateKey.PubKey },
+                signatureCount: 1,
+                bitfield: null,
+                network: _network
+            ).ToWif();
+        #endregion
 
         public Network Network
         {

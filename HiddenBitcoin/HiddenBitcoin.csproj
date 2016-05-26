@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="DataClasses\KeyStorage\InitialSafe.cs" />
     <Compile Include="DataClasses\Network.cs" />
+    <Compile Include="DataClasses\PrivateKeyAddressPair.cs" />
     <Compile Include="DataClasses\Wallet.cs" />
     <Compile Include="DataClasses\KeyStorage\WalletFileSerializer.cs" />
     <Compile Include="GlobalSuppressions.cs" />

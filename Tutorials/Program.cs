@@ -80,10 +80,24 @@ namespace Tutorials
                 if (network != loadedSafe.Network)
                     throw new Exception("WrongNetwork");
 
-                // Finally let's write out the seed bitcoin private key
-                Console.WriteLine(loadedSafe.Seed);
+                // Finally let's write out a few things
+                // The seed private key
+                Console.WriteLine("seed: " + loadedSafe.Seed);
                 // You can generate addresses with the public key, but you cannot spend them
                 Console.WriteLine(loadedSafe.SeedPublicKey);
+
+                // The third child address
+                Console.WriteLine(loadedSafe.GetAddress(2));
+                // The first child private key
+                Console.WriteLine(loadedSafe.GetPrivateKey(0));
+
+                // The first ten privkey address pair
+                for (int i = 0; i < 10; i++)
+                {
+                    var privateKeyAddressPair = loadedSafe.GetPrivateKeyAddressPair(i);
+                    Console.WriteLine(privateKeyAddressPair.Address);
+                    Console.WriteLine(privateKeyAddressPair.PrivateKey);
+                }
 
                 // You can get the dark wallet type stealth address of the safe
                 Console.WriteLine(loadedSafe.StealthAddress);

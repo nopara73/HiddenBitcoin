@@ -22,10 +22,11 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
         }
 
         public ExtKey SeedExtKey { get; private set; }
-        public string Seed => SeedExtKey.GetWif(_network).ToWif();
-        public string SeedPublicKey => SeedExtKey.Neuter().GetWif(_network).ToWif();
         public string WalletFilePath { get; private set; }
 
+        public string Seed => SeedExtKey.GetWif(_network).ToWif();
+        public string SeedPublicKey => SeedExtKey.Neuter().GetWif(_network).ToWif();
+        
         #region Stealth
 
         // As long as the safe is fully trusted no need different keys scan and spendkey
@@ -56,6 +57,25 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
                     return Network.TestNet;
                 throw new InvalidOperationException("WrongNetwork");
             }
+        }
+
+        public string GetAddress(int index)
+        {
+            return SeedExtKey.Derive(index, hardened: true).ScriptPubKey.GetDestinationAddress(_network).ToWif();
+        }
+        public string GetPrivateKey(int index)
+        {
+            return SeedExtKey.Derive(index, hardened: true).GetWif(_network).ToWif();
+        }
+
+        public PrivateKeyAddressPair GetPrivateKeyAddressPair(int index)
+        {
+            var foo = SeedExtKey.Derive(index, hardened: true).GetWif(_network);
+            return new PrivateKeyAddressPair
+            {
+                PrivateKey = foo.ToWif(),
+                Address = foo.ScriptPubKey.GetDestinationAddress(_network).ToWif()
+            };
         }
 
         private void Save(string password, string walletFilePath, Network network)

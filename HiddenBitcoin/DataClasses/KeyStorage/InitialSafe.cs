@@ -2,7 +2,7 @@
 {
     public struct InitialSafe
     {
-        public string Mnemonic;
-        public Safe Safe;
+        public string Mnemonic { get; set; }
+        public Safe Safe { get; set; }
     }
 }

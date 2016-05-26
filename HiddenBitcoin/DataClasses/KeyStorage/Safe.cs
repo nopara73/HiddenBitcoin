@@ -8,6 +8,7 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
     public class Safe
     {
         private NBitcoin.Network _network;
+        private ExtKey _seedPrivateKey;
 
         private Safe(string password, string walletFilePath, Network network, string mnemonicString = null)
         {
@@ -21,31 +22,9 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
             WalletFilePath = walletFilePath;
         }
 
-        public ExtKey SeedExtKey { get; private set; }
         public string WalletFilePath { get; private set; }
-
-        public string Seed => SeedExtKey.GetWif(_network).ToWif();
-        public string SeedPublicKey => SeedExtKey.Neuter().GetWif(_network).ToWif();
-        
-        #region Stealth
-
-        // As long as the safe is fully trusted no need different keys scan and spendkey
-        // ReSharper disable InconsistentNaming
-        private Key _spendPrivateKey => SeedExtKey.PrivateKey;
-        public string SpendPrivateKey => _spendPrivateKey.GetWif(_network).ToWif();
-        private Key _scanPrivateKey => _spendPrivateKey;
-        public string ScanPrivateKey => _scanPrivateKey.GetWif(_network).ToWif();
-        // ReSharper restore InconsistentNaming
-
-        public string StealthAddress => new BitcoinStealthAddress
-            (
-                scanKey: _scanPrivateKey.PubKey,
-                pubKeys: new[] { _spendPrivateKey.PubKey },
-                signatureCount: 1,
-                bitfield: null,
-                network: _network
-            ).ToWif();
-        #endregion
+        public string Seed => _seedPrivateKey.GetWif(_network).ToWif();
+        public string SeedPublicKey => _seedPrivateKey.Neuter().GetWif(_network).ToWif();
 
         public Network Network
         {
@@ -61,16 +40,17 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
 
         public string GetAddress(int index)
         {
-            return SeedExtKey.Derive(index, hardened: true).ScriptPubKey.GetDestinationAddress(_network).ToWif();
+            return _seedPrivateKey.Derive(index, true).ScriptPubKey.GetDestinationAddress(_network).ToWif();
         }
+
         public string GetPrivateKey(int index)
         {
-            return SeedExtKey.Derive(index, hardened: true).GetWif(_network).ToWif();
+            return _seedPrivateKey.Derive(index, true).GetWif(_network).ToWif();
         }
 
         public PrivateKeyAddressPair GetPrivateKeyAddressPair(int index)
         {
-            var foo = SeedExtKey.Derive(index, hardened: true).GetWif(_network);
+            var foo = _seedPrivateKey.Derive(index, true).GetWif(_network);
             return new PrivateKeyAddressPair
             {
                 PrivateKey = foo.ToWif(),
@@ -86,8 +66,8 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
             var directoryPath = Path.GetDirectoryName(Path.GetFullPath(walletFilePath));
             if (directoryPath != null) Directory.CreateDirectory(directoryPath);
 
-            var privateKey = SeedExtKey.PrivateKey;
-            var chainCode = SeedExtKey.ChainCode;
+            var privateKey = _seedPrivateKey.PrivateKey;
+            var chainCode = _seedPrivateKey.ChainCode;
 
             var encryptedBitcoinPrivateKeyString = privateKey.GetEncryptedBitcoinSecret(password, _network).ToWif();
             var chainCodeString = Convert.ToBase64String(chainCode);
@@ -167,14 +147,14 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
                     ? new Mnemonic(Wordlist.English, WordCount.Twelve)
                     : new Mnemonic(mnemonicString);
 
-            SeedExtKey = mnemonic.DeriveExtKey(password);
+            _seedPrivateKey = mnemonic.DeriveExtKey(password);
 
             return mnemonic;
         }
 
         private void SetSeed(ExtKey seedExtKey)
         {
-            SeedExtKey = seedExtKey;
+            _seedPrivateKey = seedExtKey;
         }
 
         private void SetNetwork(Network network)
@@ -185,5 +165,21 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
                 _network = NBitcoin.Network.TestNet;
             else throw new Exception("WrongNetwork");
         }
+
+        #region Stealth
+
+        // As long as the safe is fully trusted no need different keys scan and spendkey
+        // ReSharper disable InconsistentNaming
+        private Key _spendPrivateKey => _seedPrivateKey.PrivateKey;
+        public string SpendPrivateKey => _spendPrivateKey.GetWif(_network).ToWif();
+        private Key _scanPrivateKey => _spendPrivateKey;
+        public string ScanPrivateKey => _scanPrivateKey.GetWif(_network).ToWif();
+        // ReSharper restore InconsistentNaming
+
+        public string StealthAddress => new BitcoinStealthAddress
+            (_scanPrivateKey.PubKey, new[] {_spendPrivateKey.PubKey}, 1, null, _network
+            ).ToWif();
+
+        #endregion
     }
 }

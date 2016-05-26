@@ -92,7 +92,7 @@ namespace Tutorials
                 Console.WriteLine(loadedSafe.GetPrivateKey(0));
 
                 // The first ten privkey address pair
-                for (int i = 0; i < 10; i++)
+                for (var i = 0; i < 10; i++)
                 {
                     var privateKeyAddressPair = loadedSafe.GetPrivateKeyAddressPair(i);
                     Console.WriteLine(privateKeyAddressPair.Address);

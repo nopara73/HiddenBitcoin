@@ -3,7 +3,7 @@ using System.IO;
 using HiddenBitcoin.Helpers;
 using NBitcoin;
 
-namespace HiddenBitcoin.DataClasses
+namespace HiddenBitcoin.DataClasses.KeyStorage
 {
     public class Safe
     {

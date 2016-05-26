@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using HiddenBitcoin.DataClasses;
+using HiddenBitcoin.DataClasses.KeyStorage;
 
 namespace Tutorials
 {

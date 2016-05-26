@@ -1,4 +1,6 @@
-﻿namespace HiddenBitcoin.DataClasses
+﻿using HiddenBitcoin.DataClasses.KeyStorage;
+
+namespace HiddenBitcoin.DataClasses
 {
     public class Wallet: WalletMonitor
     {

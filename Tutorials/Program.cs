@@ -52,7 +52,7 @@ namespace Tutorials
             {
                 // First specify a network, it can be TestNet or MainNet
                 // You can quickly get some free testnet coins to play with, just google it
-                var network = Network.TestNet;
+                var network = Network.MainNet;
 
                 var password = "ILoveHiddenWallet";
 
@@ -60,21 +60,21 @@ namespace Tutorials
                 // The Safe class helps you mange your seed properly
                 // I like to call the safe file as wallet file, 
                 // because the user might encounter with it and he is familiar with this terminology.
-                var initialSafe = Safe.Create(password, walletFilePath, network);
+                InitialSafe initialSafe = Safe.Create(password, walletFilePath, network);
 
                 // Safe creation has created a mnemonic, too, you can use it to recover (or duplicate) the safe
-                var mnemonic = initialSafe.Mnemonic;
+                string mnemonic = initialSafe.Mnemonic;
                 Console.WriteLine(mnemonic);
 
                 // After the mnemonic is used, you should work with the safe inside the initial safe
                 // since this one does not cointain the mnemonic
-                var safe = initialSafe.Safe;
+                Safe safe = initialSafe.Safe;
 
                 // Let's recover the safe to an other file
-                var recoveredSafe = Safe.Recover(mnemonic, password, recoveredWalletFilePath, network);
+                Safe recoveredSafe = Safe.Recover(mnemonic, password, recoveredWalletFilePath, network);
 
                 // You can also load an existing safe from file with your password
-                var loadedSafe = Safe.Load(password, walletFilePath);
+                Safe loadedSafe = Safe.Load(password, walletFilePath);
 
                 // After we load a safe it's not a bad idea to check if it is on the expected network
                 if (network != loadedSafe.Network)

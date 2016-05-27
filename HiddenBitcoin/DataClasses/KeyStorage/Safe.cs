@@ -168,11 +168,10 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
 
         #region Stealth
 
-        // As long as the safe is fully trusted no need different keys scan and spendkey
         // ReSharper disable InconsistentNaming
         private Key _spendPrivateKey => _seedPrivateKey.PrivateKey;
         public string SpendPrivateKey => _spendPrivateKey.GetWif(_network).ToWif();
-        private Key _scanPrivateKey => _spendPrivateKey;
+        private Key _scanPrivateKey => _seedPrivateKey.Derive(0, hardened: true).PrivateKey;
         public string ScanPrivateKey => _scanPrivateKey.GetWif(_network).ToWif();
         // ReSharper restore InconsistentNaming
 

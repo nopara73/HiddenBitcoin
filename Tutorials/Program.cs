@@ -54,31 +54,31 @@ namespace Tutorials
                 // You can quickly get some free testnet coins to play with, just google it
                 var network = Network.MainNet;
 
-                var password = "ILoveHiddenWallet";
+                var password = "password";
 
                 // Create a safe at the specified path with a password on the specified network
                 // The Safe class helps you mange your seed properly
-                // I like to call the safe file as wallet file, 
-                // because the user might encounter with it and he is familiar with this terminology.
+                // I like to call the safe file to wallet file, 
+                // because the user might encounters with it and he is familiar with this terminology.
                 string mnemonic;
-                var safe = Safe.Create(out mnemonic, password, walletFilePath, network);
+                Safe safe = Safe.Create(out mnemonic, password, walletFilePath, network);
 
                 // Safe creation has created a mnemonic, too, you can use it to recover (or duplicate) the safe
                 Console.WriteLine(mnemonic);
 
                 // Let's recover the safe to an other file
-                var recoveredSafe = Safe.Recover(mnemonic, password, recoveredWalletFilePath, network);
+                Safe recoveredSafe = Safe.Recover(mnemonic, password, recoveredWalletFilePath, network);
 
                 // You can also load an existing safe from file with your password
-                var loadedSafe = Safe.Load(password, walletFilePath);
+                Safe loadedSafe = Safe.Load(password, walletFilePath);
 
                 // After we load a safe it's not a bad idea to check if it is on the expected network
                 if (network != loadedSafe.Network)
                     throw new Exception("WrongNetwork");
 
-                // Finally let's write out a few things
+                // Let's write out a few things
                 // The seed private key
-                Console.WriteLine("seed: " + loadedSafe.Seed);
+                Console.WriteLine(loadedSafe.Seed);
                 // You can generate addresses with the public key, but you cannot spend them
                 Console.WriteLine(loadedSafe.SeedPublicKey);
 
@@ -93,6 +93,12 @@ namespace Tutorials
                     var privateKeyAddressPair = loadedSafe.GetPrivateKeyAddressPair(i);
                     Console.WriteLine(privateKeyAddressPair.Address);
                     Console.WriteLine(privateKeyAddressPair.PrivateKey);
+                }
+
+                // List out the first 10 address
+                for (var i = 0; i < 10; i++)
+                {
+                    Console.WriteLine(safe.GetAddress(i));
                 }
 
                 // You can get the dark wallet type stealth address of the safe

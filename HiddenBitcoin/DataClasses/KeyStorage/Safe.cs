@@ -87,7 +87,7 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
 
             var walletFileRawContent = WalletFileSerializer.Deserialize(walletFilePath);
 
-            var encryptedBitcoinPrivateKeyString = walletFileRawContent.Seed;
+            var encryptedBitcoinPrivateKeyString = walletFileRawContent.EncryptedSeed;
             var chainCodeString = walletFileRawContent.ChainCode;
 
             var chainCode = Convert.FromBase64String(chainCodeString);
@@ -112,25 +112,20 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
         /// <summary>
         ///     Creates a mnemonic, a seed, encrypts it and stores in the specified path.
         /// </summary>
+        /// <param name="mnemonic">empty string</param>
         /// <param name="password"></param>
         /// <param name="walletFilePath"></param>
         /// <param name="network"></param>
-        /// <returns>Safe and Mnemonic</returns>
-        public static InitialSafe Create(string password, string walletFilePath, Network network)
+        /// <returns>Safe</returns>
+        public static Safe Create(out string mnemonic, string password, string walletFilePath, Network network)
         {
             var safe = new Safe(password, walletFilePath, network);
 
-            var mnemonic = safe.SetSeed(password);
+            mnemonic = safe.SetSeed(password).ToString();
 
             safe.Save(password, walletFilePath, network);
 
-            var initialSafe = new InitialSafe
-            {
-                Mnemonic = mnemonic.ToString(),
-                Safe = safe
-            };
-
-            return initialSafe;
+            return safe;
         }
 
         public static Safe Recover(string mnemonic, string password, string walletFilePath, Network network)
@@ -171,7 +166,7 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
         // ReSharper disable InconsistentNaming
         private Key _spendPrivateKey => _seedPrivateKey.PrivateKey;
         public string SpendPrivateKey => _spendPrivateKey.GetWif(_network).ToWif();
-        private Key _scanPrivateKey => _seedPrivateKey.Derive(0, hardened: true).PrivateKey;
+        private Key _scanPrivateKey => _seedPrivateKey.Derive(0, true).PrivateKey;
         public string ScanPrivateKey => _scanPrivateKey.GetWif(_network).ToWif();
         // ReSharper restore InconsistentNaming
 

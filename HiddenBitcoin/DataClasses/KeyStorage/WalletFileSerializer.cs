@@ -9,13 +9,13 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
         [JsonConstructor]
         private WalletFileSerializer(string encryptedBitcoinPrivateKey, string chainCode, string network)
         {
-            Seed = encryptedBitcoinPrivateKey;
+            EncryptedSeed = encryptedBitcoinPrivateKey;
             ChainCode = chainCode;
             Network = network;
         }
 
         // KEEP THEM PUBLIC OTHERWISE IT WILL NOT SERIALIZE!
-        public string Seed { get; set; }
+        public string EncryptedSeed { get; set; }
         public string ChainCode { get; set; }
         public string Network { get; set; }
 
@@ -42,7 +42,7 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
             var contentString = File.ReadAllText(path);
             var walletFileSerializer = JsonConvert.DeserializeObject<WalletFileSerializer>(contentString);
 
-            return new WalletFileSerializer(walletFileSerializer.Seed, walletFileSerializer.ChainCode,
+            return new WalletFileSerializer(walletFileSerializer.EncryptedSeed, walletFileSerializer.ChainCode,
                 walletFileSerializer.Network);
         }
     }

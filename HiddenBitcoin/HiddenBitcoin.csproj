@@ -56,7 +56,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataClasses\KeyStorage\InitialSafe.cs" />
     <Compile Include="DataClasses\Network.cs" />
     <Compile Include="DataClasses\PrivateKeyAddressPair.cs" />
     <Compile Include="DataClasses\Wallet.cs" />

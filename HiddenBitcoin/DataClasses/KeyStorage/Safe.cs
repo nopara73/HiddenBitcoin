@@ -40,17 +40,17 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
 
         public string GetAddress(int index)
         {
-            return _seedPrivateKey.Derive(index, true).ScriptPubKey.GetDestinationAddress(_network).ToWif();
+            return _seedPrivateKey.Derive(0, true).Derive(index, true).ScriptPubKey.GetDestinationAddress(_network).ToWif();
         }
 
         public string GetPrivateKey(int index)
         {
-            return _seedPrivateKey.Derive(index, true).GetWif(_network).ToWif();
+            return _seedPrivateKey.Derive(0, true).Derive(index, true).GetWif(_network).ToWif();
         }
 
         public PrivateKeyAddressPair GetPrivateKeyAddressPair(int index)
         {
-            var foo = _seedPrivateKey.Derive(index, true).GetWif(_network);
+            var foo = _seedPrivateKey.Derive(0, true).Derive(index, true).GetWif(_network);
             return new PrivateKeyAddressPair
             {
                 PrivateKey = foo.ToWif(),
@@ -164,10 +164,10 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
         #region Stealth
 
         // ReSharper disable InconsistentNaming
-        private Key _spendPrivateKey => _seedPrivateKey.PrivateKey;
+        private Key _spendPrivateKey => _seedPrivateKey.Derive(1, true).Derive(0, true).PrivateKey;
         public string SpendPrivateKey => _spendPrivateKey.GetWif(_network).ToWif();
         private Key _scanPrivateKey => _seedPrivateKey.Derive(0, true).PrivateKey;
-        public string ScanPrivateKey => _scanPrivateKey.GetWif(_network).ToWif();
+        public string ScanPrivateKey => _seedPrivateKey.Derive(1, true).Derive(1, true).GetWif(_network).ToWif();
         // ReSharper restore InconsistentNaming
 
         public string StealthAddress => new BitcoinStealthAddress

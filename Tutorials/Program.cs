@@ -107,6 +107,10 @@ namespace Tutorials
                 Console.WriteLine(loadedSafe.ScanPrivateKey);
                 Console.WriteLine(loadedSafe.SpendPrivateKey);
 
+                // The wallet has a clean part of it, more on that later
+                Console.WriteLine(safe.GetAddress(3, clean: true));
+                Console.WriteLine(safe.GetPrivateKey(5, clean: true));
+
                 //Safe[] safes = new[] {hiddenSafe, recoveredSafe, loadedSafe};
                 //foreach (var safe in safes)
                 //{

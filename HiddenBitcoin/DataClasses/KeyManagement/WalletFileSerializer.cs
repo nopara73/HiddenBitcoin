@@ -2,7 +2,7 @@
 using System.IO;
 using Newtonsoft.Json;
 
-namespace HiddenBitcoin.DataClasses.KeyStorage
+namespace HiddenBitcoin.DataClasses.KeyManagement
 {
     internal class WalletFileSerializer
     {

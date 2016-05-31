@@ -1,10 +1,11 @@
-﻿using HiddenBitcoin.DataClasses.KeyStorage;
+﻿using HiddenBitcoin.DataClasses.KeyManagement;
+using HiddenBitcoin.DataClasses.Monitoring;
 
 namespace HiddenBitcoin.DataClasses
 {
-    public class Wallet : WalletMonitor
+    public class Wallet : SafeMonitor
     {
-        public Wallet(Safe safe) : base(safe.SeedPublicKey)
+        public Wallet(Safe safe) : base(safe)
         {
             Safe = safe;
         }

@@ -56,16 +56,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataClasses\AddressHistory.cs" />
+    <Compile Include="DataClasses\AddressHistoryRecord.cs" />
+    <Compile Include="DataClasses\Convert.cs" />
+    <Compile Include="DataClasses\BalanceInfo.cs" />
     <Compile Include="DataClasses\Network.cs" />
     <Compile Include="DataClasses\PrivateKeyAddressPair.cs" />
+    <Compile Include="DataClasses\TransactionInfo.cs" />
+    <Compile Include="DataClasses\InOutInfo.cs" />
     <Compile Include="DataClasses\Wallet.cs" />
-    <Compile Include="DataClasses\KeyStorage\WalletFileSerializer.cs" />
+    <Compile Include="DataClasses\KeyManagement\WalletFileSerializer.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\KeyGenerator.cs" />
-    <Compile Include="DataClasses\Monitor.cs" />
+    <Compile Include="DataClasses\Monitoring\BlockchainMonitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="DataClasses\KeyStorage\Safe.cs" />
-    <Compile Include="DataClasses\WalletMonitor.cs" />
+    <Compile Include="DataClasses\KeyManagement\Safe.cs" />
+    <Compile Include="DataClasses\Monitoring\SafeMonitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

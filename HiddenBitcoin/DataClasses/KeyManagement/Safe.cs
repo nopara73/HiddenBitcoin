@@ -3,20 +3,12 @@ using System.IO;
 using NBitcoin;
 using NBitcoin.Stealth;
 
-namespace HiddenBitcoin.DataClasses.KeyStorage
+namespace HiddenBitcoin.DataClasses.KeyManagement
 {
     public class Safe
     {
         private NBitcoin.Network _network;
         private ExtKey _seedPrivateKey;
-
-        #region Hierarchy
-
-        private const string StealthPath = "0'";
-        private const string NormalHdPath = "1'";
-        private const string CleanHdPath = "2'";
-
-        #endregion
 
         private Safe(string password, string walletFilePath, Network network, string mnemonicString = null)
         {
@@ -33,18 +25,7 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
         public string WalletFilePath { get; private set; }
         public string Seed => _seedPrivateKey.GetWif(_network).ToWif();
         public string SeedPublicKey => _seedPrivateKey.Neuter().GetWif(_network).ToWif();
-
-        public Network Network
-        {
-            get
-            {
-                if (_network == NBitcoin.Network.Main)
-                    return Network.MainNet;
-                if (_network == NBitcoin.Network.TestNet)
-                    return Network.TestNet;
-                throw new InvalidOperationException("WrongNetwork");
-            }
-        }
+        public Network Network => Convert.ToHiddenBitcoinNetwork(_network);
 
         public string GetAddress(int index, bool clean = false)
         {
@@ -53,9 +34,9 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
                 startPath = CleanHdPath;
 
             var keyPath = new KeyPath(startPath + "/" + index);
-            return  _seedPrivateKey.Derive(keyPath).ScriptPubKey.GetDestinationAddress(_network).ToWif();
+            return _seedPrivateKey.Derive(keyPath).ScriptPubKey.GetDestinationAddress(_network).ToWif();
         }
-        
+
         public string GetPrivateKey(int index, bool clean = false)
         {
             var startPath = NormalHdPath;
@@ -65,7 +46,7 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
             var keyPath = new KeyPath(startPath + "/" + index);
             return _seedPrivateKey.Derive(keyPath).GetWif(_network).ToWif();
         }
-        
+
         public PrivateKeyAddressPair GetPrivateKeyAddressPair(int index, bool clean = false)
         {
             var startPath = NormalHdPath;
@@ -80,7 +61,7 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
                 Address = foo.ScriptPubKey.GetDestinationAddress(_network).ToWif()
             };
         }
-        
+
         private void Save(string password, string walletFilePath, Network network)
         {
             if (File.Exists(walletFilePath))
@@ -93,7 +74,7 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
             var chainCode = _seedPrivateKey.ChainCode;
 
             var encryptedBitcoinPrivateKeyString = privateKey.GetEncryptedBitcoinSecret(password, _network).ToWif();
-            var chainCodeString = Convert.ToBase64String(chainCode);
+            var chainCodeString = System.Convert.ToBase64String(chainCode);
 
             var networkString = network.ToString();
 
@@ -113,7 +94,7 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
             var encryptedBitcoinPrivateKeyString = walletFileRawContent.EncryptedSeed;
             var chainCodeString = walletFileRawContent.ChainCode;
 
-            var chainCode = Convert.FromBase64String(chainCodeString);
+            var chainCode = System.Convert.FromBase64String(chainCodeString);
 
             Network network;
             var networkString = walletFileRawContent.Network;
@@ -183,6 +164,14 @@ namespace HiddenBitcoin.DataClasses.KeyStorage
                 _network = NBitcoin.Network.TestNet;
             else throw new Exception("WrongNetwork");
         }
+
+        #region Hierarchy
+
+        private const string StealthPath = "0'";
+        private const string NormalHdPath = "1'";
+        private const string CleanHdPath = "2'";
+
+        #endregion
 
         #region Stealth
 

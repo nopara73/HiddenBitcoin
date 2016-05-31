@@ -2,8 +2,11 @@
 
 using System;
 using System.IO;
+using System.Linq;
+using System.Security.Policy;
 using HiddenBitcoin.DataClasses;
-using HiddenBitcoin.DataClasses.KeyStorage;
+using HiddenBitcoin.DataClasses.KeyManagement;
+using HiddenBitcoin.DataClasses.Monitoring;
 
 namespace Tutorials
 {
@@ -11,37 +14,73 @@ namespace Tutorials
     {
         private static void Main()
         {
-            Part1(); // Storing keys
-            //Part2(); // Monitoring keys
+            //Part1(); // Storing keys
+            Part2(); // Monitoring keys
 
             Console.ReadLine();
         }
 
         private static void Part2()
         {
-            var walletFilePath = @"Wallets\hiddenWallet.hid"; // extension can be anything
+            var network = Network.MainNet;
 
-            try
+            var blockchainMonitor = new BlockchainMonitor(network);
+
+            //var balanceInfo = blockchainMonitor.GetBalance("1ENCTCkqoJqy2XZ2m2Dy1bRax7hsSnC5Fc");
+            //Console.WriteLine(balanceInfo.Address);
+            //Console.WriteLine(balanceInfo.Confirmed);
+            //Console.WriteLine(balanceInfo.Unconfirmed);
+
+
+            // tx is exotic (has OP_RETURN)
+            //var transactionInfo = blockchainMonitor.GetTransactionInfo("8bae12b5f4c088d940733dcd1455efc6a3a69cf9340e17a981286d3778615684");
+            // tx is normal
+            //var transactionInfo = blockchainMonitor.GetTransactionInfo("8bbd7678d93da5da8736a84a69a1de83834bea732c65342687e8db549f153504");
+
+            //Console.WriteLine("txid: " + transactionInfo.Id);
+            //Console.WriteLine("Network: " + transactionInfo.Network);
+            //Console.WriteLine("Confirmed: " + transactionInfo.Confirmed);
+            //Console.WriteLine("Total amount of all inputs: " + transactionInfo.TotalInputAmount);
+            //Console.WriteLine("Total amount of all outputs: " + transactionInfo.TotalOutputAmount);
+            //Console.WriteLine("Fee : " + transactionInfo.Fee);
+            //Console.WriteLine("There are no exotic inputs or outputs, so all of them have been added successfully: "
+            //    + Environment.NewLine + transactionInfo.AllInOutsAdded);
+
+            //Console.WriteLine(Environment.NewLine + "Input addresses and amounts: ");
+            //foreach (var input in transactionInfo.Inputs)
+            //{
+            //    Console.WriteLine(input.Amount + " " + input.Address);
+            //}
+            //Console.WriteLine(Environment.NewLine + "Output addresses and amounts: ");
+            //foreach (var output in transactionInfo.Outputs)
+            //{
+            //    Console.WriteLine(output.Amount + " " + output.Address);
+            //}
+
+            //lot of transactions:
+            var address = "13eh4wPLe1nCsh8FXJNpL6e9D1edWNT1Ub";
+            //only few transactions:
+            //var address = "19V1JJ68Ee57tKnG7NikH4tU93xqMShCyD";
+            var history =
+                blockchainMonitor.GetAddressHistory(address);
+
+            Console.WriteLine("Number of transactions: " + history.Records.Count);
+
+            var allTransactionsConfirmed = true;
+            foreach (var record in history.Records)
             {
-                // Monitor class monitors the blockchain
-
-
-                var password = "ILoveHiddenWallet";
-                var mnemonic = "teach track round spend push kangaroo quit volume defy want badge excuse";
-
-                // Let's recover a safe I have created before and sent there testnet coins
-                var safe = Safe.Recover(mnemonic, password, walletFilePath, Network.TestNet);
-
-                // WalletMonitor class monitors a safe
-                // Safe class helps you store and manage the seed
-                // WalletMonitor does only need the public key of the seed
-                var walletMonitor = new WalletMonitor(safe.SeedPublicKey);
+                Console.WriteLine("txid: " + record.TransactionId);
+                allTransactionsConfirmed = allTransactionsConfirmed && record.Confirmed;
             }
-            finally
-            {
-                // Cleanup in order to be able to execute this chapter repeatedly
-                File.Delete(walletFilePath);
-            }
+            Console.WriteLine("All transactions are confirmed: " + allTransactionsConfirmed);
+
+            Console.WriteLine("Total received - Total spent = Balance");
+            Console.WriteLine(history.TotalReceived + " - " + history.TotalSpent + " = " +
+                              (history.TotalReceived - history.TotalSpent));
+
+            var balanceInfo = blockchainMonitor.GetBalance(address);
+            Console.WriteLine(@"blockchainMonitor.GetBalance(address): " +
+                              (balanceInfo.Confirmed + balanceInfo.Unconfirmed));
         }
 
         private static void Part1()
@@ -61,16 +100,16 @@ namespace Tutorials
                 // I like to call the safe file to wallet file, 
                 // because the user might encounters with it and he is familiar with this terminology.
                 string mnemonic;
-                Safe safe = Safe.Create(out mnemonic, password, walletFilePath, network);
+                var safe = Safe.Create(out mnemonic, password, walletFilePath, network);
 
                 // Safe creation has created a mnemonic, too, you can use it to recover (or duplicate) the safe
                 Console.WriteLine(mnemonic);
 
                 // Let's recover the safe to an other file
-                Safe recoveredSafe = Safe.Recover(mnemonic, password, recoveredWalletFilePath, network);
+                var recoveredSafe = Safe.Recover(mnemonic, password, recoveredWalletFilePath, network);
 
                 // You can also load an existing safe from file with your password
-                Safe loadedSafe = Safe.Load(password, walletFilePath);
+                var loadedSafe = Safe.Load(password, walletFilePath);
 
                 // After we load a safe it's not a bad idea to check if it is on the expected network
                 if (network != loadedSafe.Network)

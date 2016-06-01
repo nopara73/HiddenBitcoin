@@ -1,4 +1,7 @@
-﻿using NBitcoin;
+﻿using System;
+using HiddenBitcoin.DataClasses.KeyManagement;
+using NBitcoin;
+using NBitcoin.Stealth;
 using QBitNinja.Client;
 
 namespace HiddenBitcoin.DataClasses.Monitoring

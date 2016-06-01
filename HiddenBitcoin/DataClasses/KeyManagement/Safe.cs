@@ -176,14 +176,14 @@ namespace HiddenBitcoin.DataClasses.KeyManagement
         #region Stealth
 
         // ReSharper disable InconsistentNaming
-        private Key _spendPrivateKey => _seedPrivateKey.Derive(new KeyPath(StealthPath + "/0'")).PrivateKey;
-        public string SpendPrivateKey => _spendPrivateKey.GetWif(_network).ToWif();
-        private Key _scanPrivateKey => _seedPrivateKey.Derive(new KeyPath(StealthPath + "/1'")).PrivateKey;
-        public string ScanPrivateKey => _seedPrivateKey.Derive(1, true).Derive(1, true).GetWif(_network).ToWif();
+        private Key _stealthSpendPrivateKey => _seedPrivateKey.Derive(new KeyPath(StealthPath + "/0'")).PrivateKey;
+        public string StealthSpendPrivateKey => _stealthSpendPrivateKey.GetWif(_network).ToWif();
+        private Key _stealthScanPrivateKey => _seedPrivateKey.Derive(new KeyPath(StealthPath + "/1'")).PrivateKey;
+        public string StealthScanPrivateKey => _seedPrivateKey.Derive(1, true).Derive(1, true).GetWif(_network).ToWif();
         // ReSharper restore InconsistentNaming
 
         public string StealthAddress => new BitcoinStealthAddress
-            (_scanPrivateKey.PubKey, new[] {_spendPrivateKey.PubKey}, 1, null, _network
+            (_stealthScanPrivateKey.PubKey, new[] {_stealthSpendPrivateKey.PubKey}, 1, null, _network
             ).ToWif();
 
         #endregion

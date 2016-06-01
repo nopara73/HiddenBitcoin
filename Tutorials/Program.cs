@@ -58,29 +58,30 @@ namespace Tutorials
             //}
 
             //lot of transactions:
-            var address = "13eh4wPLe1nCsh8FXJNpL6e9D1edWNT1Ub";
+            //var address = "13eh4wPLe1nCsh8FXJNpL6e9D1edWNT1Ub";
             //only few transactions:
             //var address = "19V1JJ68Ee57tKnG7NikH4tU93xqMShCyD";
-            var history =
-                blockchainMonitor.GetAddressHistory(address);
+            //var history =
+            //    blockchainMonitor.GetAddressHistory(address);
 
-            Console.WriteLine("Number of transactions: " + history.Records.Count);
+            //Console.WriteLine("Number of transactions: " + history.Records.Count);
 
-            var allTransactionsConfirmed = true;
-            foreach (var record in history.Records)
-            {
-                Console.WriteLine("txid: " + record.TransactionId);
-                allTransactionsConfirmed = allTransactionsConfirmed && record.Confirmed;
-            }
-            Console.WriteLine("All transactions are confirmed: " + allTransactionsConfirmed);
+            //var allTransactionsConfirmed = true;
+            //foreach (var record in history.Records)
+            //{
+            //    Console.WriteLine("txid: " + record.TransactionId);
+            //    allTransactionsConfirmed = allTransactionsConfirmed && record.Confirmed;
+            //}
+            //Console.WriteLine("All transactions are confirmed: " + allTransactionsConfirmed);
 
-            Console.WriteLine("Total received - Total spent = Balance");
-            Console.WriteLine(history.TotalReceived + " - " + history.TotalSpent + " = " +
-                              (history.TotalReceived - history.TotalSpent));
+            //Console.WriteLine("Total received - Total spent = Balance");
+            //Console.WriteLine(history.TotalReceived + " - " + history.TotalSpent + " = " +
+            //                  (history.TotalReceived - history.TotalSpent));
 
-            var balanceInfo = blockchainMonitor.GetBalance(address);
-            Console.WriteLine(@"blockchainMonitor.GetBalance(address): " +
-                              (balanceInfo.Confirmed + balanceInfo.Unconfirmed));
+            //var balanceInfo = blockchainMonitor.GetBalance(address);
+            //Console.WriteLine(@"blockchainMonitor.GetBalance(address): " +
+            //                  (balanceInfo.Confirmed + balanceInfo.Unconfirmed));
+            
         }
 
         private static void Part1()
@@ -143,8 +144,8 @@ namespace Tutorials
                 // You can get the dark wallet type stealth address of the safe
                 Console.WriteLine(loadedSafe.StealthAddress);
                 // Also the scan and spendkey
-                Console.WriteLine(loadedSafe.ScanPrivateKey);
-                Console.WriteLine(loadedSafe.SpendPrivateKey);
+                Console.WriteLine(loadedSafe.StealthScanPrivateKey);
+                Console.WriteLine(loadedSafe.StealthSpendPrivateKey);
 
                 // The wallet has a clean part of it, more on that later
                 Console.WriteLine(safe.GetAddress(3, clean: true));

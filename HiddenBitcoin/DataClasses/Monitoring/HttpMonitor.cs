@@ -1,17 +1,14 @@
-﻿using System;
-using HiddenBitcoin.DataClasses.KeyManagement;
-using NBitcoin;
-using NBitcoin.Stealth;
+﻿using NBitcoin;
 using QBitNinja.Client;
 
 namespace HiddenBitcoin.DataClasses.Monitoring
 {
-    public class BlockchainMonitor
+    public class HttpMonitor
     {
         private readonly QBitNinjaClient _client;
         private readonly NBitcoin.Network _network;
 
-        public BlockchainMonitor(Network network)
+        public HttpMonitor(Network network)
         {
             _network = Convert.ToNBitcoinNetwork(network);
 

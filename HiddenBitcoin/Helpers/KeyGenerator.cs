@@ -20,7 +20,7 @@ namespace HiddenBitcoin.Helpers
             var result = new StringBuilder(maxSize);
             foreach (var b in data)
             {
-                result.Append(chars[b%(chars.Length)]);
+                result.Append(chars[b%chars.Length]);
             }
             return result.ToString();
         }

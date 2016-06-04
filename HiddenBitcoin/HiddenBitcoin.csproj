@@ -64,14 +64,13 @@
     <Compile Include="DataClasses\PrivateKeyAddressPair.cs" />
     <Compile Include="DataClasses\TransactionInfo.cs" />
     <Compile Include="DataClasses\InOutInfo.cs" />
-    <Compile Include="DataClasses\Wallet.cs" />
     <Compile Include="DataClasses\KeyManagement\WalletFileSerializer.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\KeyGenerator.cs" />
-    <Compile Include="DataClasses\Monitoring\BlockchainMonitor.cs" />
+    <Compile Include="DataClasses\Monitoring\HttpMonitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DataClasses\KeyManagement\Safe.cs" />
-    <Compile Include="DataClasses\Monitoring\SafeMonitor.cs" />
+    <Compile Include="DataClasses\Monitoring\SpvSafeMonitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

@@ -24,18 +24,33 @@ namespace HiddenBitcoin.DataClasses.Monitoring
         public SpvSafeMonitor(Safe safe)
         {
             Safe = safe;
-
-            SyncProgressPercent = 0;
-            ConnectionProgressPercent = 0;
+            
             PeriodicProgressPercentAdjust();
         }
 
         public int SyncProgressPercent { get; private set; }
         public int ConnectionProgressPercent { get; private set; }
+        public bool Connected => ConnectionProgressPercent == 100;
+        public bool Synced => SyncProgressPercent == 100;
 
         // ReSharper disable once InconsistentNaming
         private NBitcoin.Network _Network => Convert.ToNBitcoinNetwork(Safe.Network);
         public Network Network => Safe.Network;
+
+        public BalanceInfo GetBalance(string address)
+        {
+            if(!Connected)
+                throw new Exception("NotConnectedToNodes");
+            if(!Synced)
+                throw new Exception("NotSynced");
+            
+
+
+            //var confirmedBalance = balanceSummary.Confirmed.Amount.ToDecimal(MoneyUnit.BTC);
+            //var unconfirmedBalance = balanceSummary.UnConfirmed.Amount.ToDecimal(MoneyUnit.BTC);
+
+            return new BalanceInfo(address, unconfirmedBalance, confirmedBalance);
+        }
 
         public async void StartConnecting()
         {

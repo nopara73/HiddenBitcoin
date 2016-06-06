@@ -174,7 +174,15 @@ namespace Tutorials
         {
             var safePath = "Hidden.wallet";
             string mnemonic;
-            var safe = Safe.Create(out mnemonic, "password", safePath, Network.TestNet);
+            Safe safe;
+            if (!File.Exists(safePath))
+            {
+                safe = Safe.Create(out mnemonic, "password", safePath, Network.TestNet);
+            }
+            else
+            {
+                safe = Safe.Load("password", safePath);
+            }
 
             var safeMonitor = new SpvSafeMonitor(safe);
             try
@@ -186,11 +194,12 @@ namespace Tutorials
                     Console.WriteLine($"Connected: {safeMonitor.ConnectionProgressPercent}%");
                     Console.WriteLine($"Synced: {safeMonitor.SyncProgressPercent}%");
                 }
+
+
             }
             finally
             {
                 safeMonitor.Disconnect();
-                File.Delete(safePath);
             }
         }
     }

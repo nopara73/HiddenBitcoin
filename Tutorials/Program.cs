@@ -186,7 +186,11 @@ namespace Tutorials
             var safeMonitor = new SpvSafeMonitor(safe);
             try
             {
-                Console.WriteLine(safe.GetAddress(5));
+                Console.WriteLine(safe.GetAddress(0));
+                Console.WriteLine(safe.GetAddress(100));
+                Console.WriteLine(safe.GetAddress(700, true));
+                Console.WriteLine(safe.GetAddress(8, true));
+                Console.WriteLine(safe.GetAddress(999));
 
                 safeMonitor.StartConnecting();
                 while (safeMonitor.ConnectionProgressPercent != 100)
@@ -196,8 +200,26 @@ namespace Tutorials
                     Console.WriteLine($"Synced: {safeMonitor.SyncProgressPercent}%");
                 }
 
-                Console.WriteLine("Confirmed wallet balance: " + safeMonitor.GetBalance().Confirmed);
-                Console.WriteLine("Unconfirmed wallet balance: " + safeMonitor.GetBalance().Unconfirmed);
+                decimal confirmed = -1;
+                decimal unconfirmed = -1;
+
+                while (true)
+                {
+                    Thread.Sleep(1000);
+
+                    var newConfirmed = safeMonitor.GetBalance().Confirmed;
+                    var newUnconfirmed = safeMonitor.GetBalance().Unconfirmed;
+
+                    if (newConfirmed != confirmed || newUnconfirmed != unconfirmed)
+                    {
+                        confirmed = newConfirmed;
+                        unconfirmed = newUnconfirmed;
+                        Console.WriteLine("Confirmed wallet balance: " + confirmed);
+                        Console.WriteLine("Unconfirmed wallet balance: " + unconfirmed);
+                    }
+                }
+
+                
             }
             finally
             {

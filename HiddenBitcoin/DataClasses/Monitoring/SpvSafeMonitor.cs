@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using HiddenBitcoin.DataClasses.KeyManagement;
 using NBitcoin;
@@ -21,14 +20,28 @@ namespace HiddenBitcoin.DataClasses.Monitoring
         private NodeConnectionParameters _connectionParameters;
         private bool _disposed;
         private NodesGroup _group;
-        private Wallet _wallet;
-        private Wallet _cleanWallet;
 
         public SpvSafeMonitor(Safe safe)
         {
             Safe = safe;
 
             PeriodicProgressPercentAdjust();
+
+            SyncTrackerKeys();
+        }
+
+        private void SyncTrackerKeys()
+        {
+            var tracker = GetTracker();
+
+            for (int i = 0; i < 1000; i++)
+            {
+                var address = new BitcoinPubKeyAddress(Safe.GetAddress(i));
+                var cleanAddress = new BitcoinPubKeyAddress(Safe.GetAddress(i, true));
+
+                tracker.Add(address);
+                tracker.Add(cleanAddress);
+            }
         }
 
         public int SyncProgressPercent { get; private set; }
@@ -46,70 +59,14 @@ namespace HiddenBitcoin.DataClasses.Monitoring
                 throw new Exception("NotConnected");
             if (!Synced)
                 throw new Exception("NotSynced");
-
-            var transactions = _wallet.GetTransactions();
+            
+            var tracker = GetTracker();
+            var transactions = tracker.GetWalletTransactions(GetChain());
 
             var unconfirmedBalance = transactions.Summary.Confirmed.Amount.ToDecimal(MoneyUnit.BTC);
             var confirmedBalance = transactions.Summary.UnConfirmed.Amount.ToDecimal(MoneyUnit.BTC);
 
             return new BalanceInfo(unconfirmedBalance, confirmedBalance);
-        }
-
-        private async void CreateWallets()
-        {
-            ExtPubKey rootKey = new BitcoinExtKey(Safe.GetPrivateKey(0)).Neuter().ExtPubKey;
-            ExtPubKey cleanRootKey = new BitcoinExtKey(Safe.GetPrivateKey(0, true)).Neuter().ExtPubKey;
-
-            var creation = new WalletCreation
-            {
-                SignatureRequired = 1,
-                UseP2SH = false,
-                Network = _Network,
-                RootKeys = new[] {rootKey},
-                PurgeConnectionOnFilterChange = true,
-                Name = Guid.NewGuid().ToString()
-            };
-            var cleanCreation = new WalletCreation
-            {
-                SignatureRequired = 1,
-                UseP2SH = false,
-                Network = _Network,
-                RootKeys = new[] { cleanRootKey },
-                PurgeConnectionOnFilterChange = true,
-                Name = Guid.NewGuid().ToString()
-            };
-
-            _wallet = await CreateWallet(creation);
-            _cleanWallet = await CreateWallet(cleanCreation);
-            if (_connectionParameters == null) return;
-
-            _wallet.Configure(_connectionParameters);
-            _cleanWallet.Configure(_connectionParameters);
-            _wallet.Connect();
-            _cleanWallet.Connect();
-            
-            var kp = _wallet.GetKeyPath(new BitcoinExtKey(Safe.GetPrivateKey(5)).ScriptPubKey);
-            Console.WriteLine("KEYPATH:");
-            Console.WriteLine(kp);
-            Console.WriteLine();
-
-            var foo = GetTracker();
-            foo.Add(new BitcoinPubKeyAddress(Safe.GetAddress(5)));
-
-            while (true)
-            {
-                Thread.Sleep(1000);
-                foreach (var tx in foo.GetWalletTransactions(GetChain()))
-                {
-                    Console.WriteLine(tx.Balance);
-                }
-            }
-            
-        }
-
-        private Task<Wallet> CreateWallet(WalletCreation creation)
-        {
-            return Task.Factory.StartNew(() => new Wallet(creation));
         }
 
         public async void StartConnecting()
@@ -132,8 +89,6 @@ namespace HiddenBitcoin.DataClasses.Monitoring
                 _group.Connect();
                 _connectionParameters = parameters;
             });
-
-            CreateWallets();
 
             PeriodicSave();
             PeriodicKick();
@@ -265,14 +220,6 @@ namespace HiddenBitcoin.DataClasses.Monitoring
                     var startHeight = _group.ConnectedNodes.First().PeerVersion.StartHeight;
                     // Can't find how to get the blockchain height, but it'll do it for this case
                     SyncProgressPercent = (int) Math.Round((double) (100*localHeight)/startHeight);
-                }
-
-                if (ConnectionProgressPercent == 100)
-                {
-                    if (_wallet.State != WalletState.Connected)
-                        ConnectionProgressPercent--;
-                    if (_cleanWallet.State != WalletState.Connected)
-                        ConnectionProgressPercent--;
                 }
 
                 if (ConnectionProgressPercent > 100) ConnectionProgressPercent = 100;

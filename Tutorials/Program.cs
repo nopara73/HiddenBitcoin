@@ -113,7 +113,6 @@ namespace Tutorials
             var blockchainMonitor = new HttpMonitor(network);
 
             var balanceInfo = blockchainMonitor.GetBalance("1ENCTCkqoJqy2XZ2m2Dy1bRax7hsSnC5Fc");
-            Console.WriteLine(balanceInfo.Address);
             Console.WriteLine(balanceInfo.Confirmed);
             Console.WriteLine(balanceInfo.Unconfirmed);
 
@@ -187,6 +186,8 @@ namespace Tutorials
             var safeMonitor = new SpvSafeMonitor(safe);
             try
             {
+                Console.WriteLine(safe.GetAddress(5));
+
                 safeMonitor.StartConnecting();
                 while (safeMonitor.ConnectionProgressPercent != 100)
                 {
@@ -195,7 +196,8 @@ namespace Tutorials
                     Console.WriteLine($"Synced: {safeMonitor.SyncProgressPercent}%");
                 }
 
-
+                Console.WriteLine("Confirmed wallet balance: " + safeMonitor.GetBalance().Confirmed);
+                Console.WriteLine("Unconfirmed wallet balance: " + safeMonitor.GetBalance().Unconfirmed);
             }
             finally
             {

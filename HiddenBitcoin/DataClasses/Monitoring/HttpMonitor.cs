@@ -24,7 +24,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
             var confirmedBalance = balanceSummary.Confirmed.Amount.ToDecimal(MoneyUnit.BTC);
             var unconfirmedBalance = balanceSummary.UnConfirmed.Amount.ToDecimal(MoneyUnit.BTC);
 
-            return new BalanceInfo(address, unconfirmedBalance, confirmedBalance);
+            return new BalanceInfo(unconfirmedBalance, confirmedBalance);
         }
 
         public TransactionInfo GetTransactionInfo(string transactionId)

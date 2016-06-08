@@ -3,40 +3,43 @@ using QBitNinja.Client;
 
 namespace HiddenBitcoin.DataClasses.Monitoring
 {
-    public class HttpMonitor
+    public class HttpMonitor : Monitor
     {
         private readonly QBitNinjaClient _client;
-        private readonly NBitcoin.Network _network;
 
-        public HttpMonitor(Network network)
+        public HttpMonitor(Network network) : base(network)
         {
-            _network = Convert.ToNBitcoinNetwork(network);
-
-            _client = new QBitNinjaClient(_network);
+            _client = new QBitNinjaClient(_Network);
         }
 
-        public Network Network => Convert.ToHiddenBitcoinNetwork(_network);
-
-        public BalanceInfo GetBalance(string address)
+        public override BalanceInfo GetBalance(string address)
         {
-            var balanceSummary = _client.GetBalanceSummary(new BitcoinPubKeyAddress(address)).Result;
+            var nBitcoinAddress = new BitcoinPubKeyAddress(address);
+            AssertNetwork(nBitcoinAddress.Network);
+
+            var balanceSummary = _client.GetBalanceSummary(nBitcoinAddress).Result;
 
             var confirmedBalance = balanceSummary.Confirmed.Amount.ToDecimal(MoneyUnit.BTC);
             var unconfirmedBalance = balanceSummary.UnConfirmed.Amount.ToDecimal(MoneyUnit.BTC);
 
-            return new BalanceInfo(unconfirmedBalance, confirmedBalance);
+            return new BalanceInfo(address, unconfirmedBalance, confirmedBalance);
         }
 
-        public TransactionInfo GetTransactionInfo(string transactionId)
+        public override TransactionInfo GetTransactionInfo(string transactionId)
         {
+            // TODO AssertNetwork(can you get network from transactionId?);
+
             var transactionIdUint256 = new uint256(transactionId);
             var transactionResponse = _client.GetTransaction(transactionIdUint256).Result;
-
+            
             return new TransactionInfo(transactionResponse, Network);
         }
 
-        public AddressHistory GetAddressHistory(string address)
+        public override AddressHistory GetAddressHistory(string address)
         {
+            var nBitcoinAddress = new BitcoinPubKeyAddress(address);
+            AssertNetwork(nBitcoinAddress.Network);
+
             var operations = _client.GetBalance(new BitcoinPubKeyAddress(address)).Result.Operations;
 
             return new AddressHistory(address, operations);

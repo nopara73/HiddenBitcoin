@@ -1,6 +1,7 @@
 ﻿// ReSharper disable All
 
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Security.Policy;
@@ -16,8 +17,8 @@ namespace Tutorials
         private static void Main()
         {
             //Part1(); // Storing keys
-            //Part2(); // Monitoring keys
-            Part2Lesson2(); // Monitoring Safes
+            //Part2(); // Monitoring keys using HTTP
+            Part3(); //  Monitoring key using SPV
 
             Console.ReadLine();
         }
@@ -110,18 +111,18 @@ namespace Tutorials
         {
             var network = Network.MainNet;
 
-            var blockchainMonitor = new HttpMonitor(network);
+            var httpMonitor = new HttpMonitor(network);
 
-            var balanceInfo = blockchainMonitor.GetBalance("1ENCTCkqoJqy2XZ2m2Dy1bRax7hsSnC5Fc");
+            var balanceInfo = httpMonitor.GetBalance("1ENCTCkqoJqy2XZ2m2Dy1bRax7hsSnC5Fc");
             Console.WriteLine(balanceInfo.Confirmed);
             Console.WriteLine(balanceInfo.Unconfirmed);
 
 
             //tx is exotic (has OP_RETURN)
             var transactionInfo =
-                blockchainMonitor.GetTransactionInfo("8bae12b5f4c088d940733dcd1455efc6a3a69cf9340e17a981286d3778615684");
+                httpMonitor.GetTransactionInfo("8bae12b5f4c088d940733dcd1455efc6a3a69cf9340e17a981286d3778615684");
             //tx is normal
-            //var transactionInfo = blockchainMonitor.GetTransactionInfo("8bbd7678d93da5da8736a84a69a1de83834bea732c65342687e8db549f153504");
+            //var transactionInfo = httpMonitor.GetTransactionInfo("8bbd7678d93da5da8736a84a69a1de83834bea732c65342687e8db549f153504");
 
             Console.WriteLine("txid: " + transactionInfo.Id);
             Console.WriteLine("Network: " + transactionInfo.Network);
@@ -148,7 +149,7 @@ namespace Tutorials
             //only few transactions:
             var address = "19V1JJ68Ee57tKnG7NikH4tU93xqMShCyD";
             var history =
-                blockchainMonitor.GetAddressHistory(address);
+                httpMonitor.GetAddressHistory(address);
 
             Console.WriteLine("Number of transactions: " + history.Records.Count);
 
@@ -164,66 +165,150 @@ namespace Tutorials
             Console.WriteLine(history.TotalReceived + " - " + history.TotalSpent + " = " +
                               (history.TotalReceived - history.TotalSpent));
 
-            balanceInfo = blockchainMonitor.GetBalance(address);
-            Console.WriteLine(@"blockchainMonitor.GetBalance(address): " +
+            balanceInfo = httpMonitor.GetBalance(address);
+            Console.WriteLine(@"httpMonitor.GetBalance(address): " +
                               (balanceInfo.Confirmed + balanceInfo.Unconfirmed));
         }
 
-        private static void Part2Lesson2()
+        private static void Part3()
         {
-            var safePath = "Hidden.wallet";
-            string mnemonic;
-            Safe safe;
-            if (!File.Exists(safePath))
-            {
-                safe = Safe.Create(out mnemonic, "password", safePath, Network.TestNet);
-            }
-            else
-            {
-                safe = Safe.Load("password", safePath);
-            }
-
-            var safeMonitor = new SpvSafeMonitor(safe);
+            var spvMonitor = new SpvMonitor(Network.MainNet);
+            var addressToTrack = "1ENCTCkqoJqy2XZ2m2Dy1bRax7hsSnC5Fc";
+            var transactionToTrack = "8bae12b5f4c088d940733dcd1455efc6a3a69cf9340e17a981286d3778615684";
             try
             {
-                Console.WriteLine(safe.GetAddress(0));
-                Console.WriteLine(safe.GetAddress(100));
-                Console.WriteLine(safe.GetAddress(700, true));
-                Console.WriteLine(safe.GetAddress(8, true));
-                Console.WriteLine(safe.GetAddress(999));
 
-                safeMonitor.StartConnecting();
-                while (safeMonitor.ConnectionProgressPercent != 100)
-                {
-                    Thread.Sleep(1000);
-                    Console.WriteLine($"Connected: {safeMonitor.ConnectionProgressPercent}%");
-                    Console.WriteLine($"Synced: {safeMonitor.SyncProgressPercent}%");
-                }
+                #region EstabilishConnectionAndSync
 
-                decimal confirmed = -1;
-                decimal unconfirmed = -1;
-
-                while (true)
-                {
-                    Thread.Sleep(1000);
-
-                    var newConfirmed = safeMonitor.GetBalance().Confirmed;
-                    var newUnconfirmed = safeMonitor.GetBalance().Unconfirmed;
-
-                    if (newConfirmed != confirmed || newUnconfirmed != unconfirmed)
-                    {
-                        confirmed = newConfirmed;
-                        unconfirmed = newUnconfirmed;
-                        Console.WriteLine("Confirmed wallet balance: " + confirmed);
-                        Console.WriteLine("Unconfirmed wallet balance: " + unconfirmed);
-                    }
-                }
-
+                spvMonitor.StartConnecting();
                 
+                // Report connection progress
+                spvMonitor.ConnectionStateChanged += delegate(object sender, EventArgs args)
+                {
+                    var monitor = (SpvMonitor) sender;
+                    Console.WriteLine($"Connection state: {monitor.ConnectionState}");
+                };
+                spvMonitor.ConnectionProgressPercentChanged += delegate (object sender, EventArgs args)
+                {
+                    var monitor = (SpvMonitor)sender;
+                    Console.WriteLine($"Connecting: {monitor.ConnectionProgressPercent}%");
+                };
+                
+                // Report syncronization progress
+                spvMonitor.SyncStateChanged += delegate (object sender, EventArgs args)
+                {
+                    var monitor = (SpvMonitor)sender;
+                    Console.WriteLine($"Sync state: {monitor.SyncState}");
+                };
+                spvMonitor.SyncProgressPercentChanged += delegate (object sender, EventArgs args)
+                {
+                    var monitor = (SpvMonitor)sender;
+                    Console.WriteLine($"Syncing: {monitor.SyncProgressPercent}%");
+                };
+
+                // Let's wait until connected and synced
+                while(spvMonitor.ConnectionState != State.Ready)
+                    Thread.Sleep(100);
+                while (spvMonitor.SyncState != State.Ready)
+                    Thread.Sleep(100);
+                #endregion
+
+                //// You can ask for random info exactly the same way as you do with HttpMonitor
+                //#region AskInfo
+                
+                //var balanceInfo = spvMonitor.GetBalance("1ENCTCkqoJqy2XZ2m2Dy1bRax7hsSnC5Fc");
+                //Console.WriteLine(balanceInfo.Confirmed);
+                //Console.WriteLine(balanceInfo.Unconfirmed);
+                
+                ////tx is exotic (has OP_RETURN)
+                //var transactionInfo =
+                //    spvMonitor.GetTransactionInfo("8bae12b5f4c088d940733dcd1455efc6a3a69cf9340e17a981286d3778615684");
+                ////tx is normal
+                ////var transactionInfo = httpMonitor.GetTransactionInfo("8bbd7678d93da5da8736a84a69a1de83834bea732c65342687e8db549f153504");
+
+                //Console.WriteLine("txid: " + transactionInfo.Id);
+                //Console.WriteLine("Network: " + transactionInfo.Network);
+                //Console.WriteLine("Confirmed: " + transactionInfo.Confirmed);
+                //Console.WriteLine("Total amount of all inputs: " + transactionInfo.TotalInputAmount);
+                //Console.WriteLine("Total amount of all outputs: " + transactionInfo.TotalOutputAmount);
+                //Console.WriteLine("Fee : " + transactionInfo.Fee);
+                //Console.WriteLine("There are no exotic inputs or outputs, so all of them have been added successfully: "
+                //                  + Environment.NewLine + transactionInfo.AllInOutsAdded);
+
+                //Console.WriteLine(Environment.NewLine + "Input addresses and amounts: ");
+                //foreach (var input in transactionInfo.Inputs)
+                //{
+                //    Console.WriteLine(input.Amount + " " + input.Address);
+                //}
+                //Console.WriteLine(Environment.NewLine + "Output addresses and amounts: ");
+                //foreach (var output in transactionInfo.Outputs)
+                //{
+                //    Console.WriteLine(output.Amount + " " + output.Address);
+                //}
+
+                ////lot of transactions:
+                ////var address = "13eh4wPLe1nCsh8FXJNpL6e9D1edWNT1Ub";
+                ////only few transactions:
+                //var address = "19V1JJ68Ee57tKnG7NikH4tU93xqMShCyD";
+                //var history =
+                //    spvMonitor.GetAddressHistory(address);
+
+                //Console.WriteLine("Number of transactions: " + history.Records.Count);
+
+                //var allTransactionsConfirmed = true;
+                //foreach (var record in history.Records)
+                //{
+                //    Console.WriteLine("txid: " + record.TransactionId);
+                //    allTransactionsConfirmed = allTransactionsConfirmed && record.Confirmed;
+                //}
+                //Console.WriteLine("All transactions are confirmed: " + allTransactionsConfirmed);
+
+                //Console.WriteLine("Total received - Total spent = Balance");
+                //Console.WriteLine(history.TotalReceived + " - " + history.TotalSpent + " = " +
+                //                  (history.TotalReceived - history.TotalSpent));
+
+                //balanceInfo = spvMonitor.GetBalance(address);
+                //Console.WriteLine(@"spvMonitor.GetBalance(address): " +
+                //                  (balanceInfo.Confirmed + balanceInfo.Unconfirmed));
+                //#endregion
+
+                // With SPV, you can also listen for changes
+                //#region TrackChanges
+
+                //spvMonitor.StartTrackingAddress(addressToTrack);
+                //spvMonitor.StartTrackingTransaction(transactionToTrack);
+
+                //spvMonitor.TrackedAddressBalanceChanged += delegate (object sender, EventArgs args)
+                //{
+                //    Console.WriteLine($"Balance changed for {args.Address}");
+
+                //    BalanceInfo oldBalanceInfo = args.OldBalanceInfo;
+                //    BalanceInfo newBalanceInfo = args.NewBalanceInfo;
+
+                //    Console.WriteLine($"Unconfirmed balance change: {args.UnconfirmedChange}");
+                //    Console.WriteLine($"Confirmed balance change: {args.ConfirmedChange}");
+
+                //    Console.WriteLine($"OVERALL BALANCE CHANGE: {args.BalanceChange}");
+                //};
+                //spvMonitor.TrackedTransactionConfirmed += delegate (object sender, EventArgs args)
+                //{
+                //    Console.WriteLine($"Transaction has just confirmed, txid: {args.TransactionId}");
+                //    TransactionInfo txinfo = args.TransactionInfo;
+                    
+                //    Console.WriteLine($"Total value exchanged in transaciton: {txinfo.TotalInputAmount}");
+                //};
+
+                ////spvMonitor.StopTrackingAddress(addressToTrack);
+                ////spvMonitor.StopTrackingTransaction(transactionToTrack);
+
+                //#endregion
+
             }
             finally
             {
-                safeMonitor.Disconnect();
+                #region Disconnect
+                spvMonitor.Disconnect();
+                #endregion
             }
         }
     }

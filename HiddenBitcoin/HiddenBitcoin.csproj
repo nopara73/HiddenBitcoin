@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>HiddenBitcoin</RootNamespace>
     <AssemblyName>HiddenBitcoin</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -60,24 +61,26 @@
     <Compile Include="DataClasses\AddressHistoryRecord.cs" />
     <Compile Include="DataClasses\Convert.cs" />
     <Compile Include="DataClasses\BalanceInfo.cs" />
+    <Compile Include="DataClasses\Monitoring\Monitor.cs" />
+    <Compile Include="DataClasses\Monitoring\SpvMonitor.cs" />
     <Compile Include="DataClasses\Network.cs" />
     <Compile Include="DataClasses\PrivateKeyAddressPair.cs" />
+    <Compile Include="DataClasses\State.cs" />
     <Compile Include="DataClasses\TransactionInfo.cs" />
     <Compile Include="DataClasses\InOutInfo.cs" />
     <Compile Include="DataClasses\KeyManagement\WalletFileSerializer.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="DataClasses\Monitoring\HttpMonitor.cs" />
+    <Compile Include="Helpers\TrulyObservableCollection.cs" />
+    <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DataClasses\KeyManagement\Safe.cs" />
-    <Compile Include="DataClasses\Monitoring\SpvSafeMonitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Helpers\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

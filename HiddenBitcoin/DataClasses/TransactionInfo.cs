@@ -13,7 +13,7 @@ namespace HiddenBitcoin.DataClasses
         private readonly List<ICoin> _receivedCoins;
         private readonly List<ICoin> _spentCoins;
         private readonly GetTransactionResponse _transactionResponse;
-
+        
         internal TransactionInfo(GetTransactionResponse transactionResponse, Network network)
         {
             _transactionResponse = transactionResponse;

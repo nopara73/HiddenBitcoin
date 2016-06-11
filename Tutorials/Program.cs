@@ -213,18 +213,18 @@ namespace Tutorials
                     Thread.Sleep(100);
                 #endregion
 
-                //// You can ask for random info exactly the same way as you do with HttpMonitor
-                //#region AskInfo
-                
-                //var balanceInfo = spvMonitor.GetBalance("1ENCTCkqoJqy2XZ2m2Dy1bRax7hsSnC5Fc");
-                //Console.WriteLine(balanceInfo.Confirmed);
-                //Console.WriteLine(balanceInfo.Unconfirmed);
-                
-                ////tx is exotic (has OP_RETURN)
+                // You can ask for random info exactly the same way as you do with HttpMonitor
+                #region AskInfo
+
+                var balanceInfo = spvMonitor.GetBalance("1ENCTCkqoJqy2XZ2m2Dy1bRax7hsSnC5Fc");
+                Console.WriteLine(balanceInfo.Confirmed);
+                Console.WriteLine(balanceInfo.Unconfirmed);
+
+                //tx is exotic (has OP_RETURN)
                 //var transactionInfo =
                 //    spvMonitor.GetTransactionInfo("8bae12b5f4c088d940733dcd1455efc6a3a69cf9340e17a981286d3778615684");
-                ////tx is normal
-                ////var transactionInfo = httpMonitor.GetTransactionInfo("8bbd7678d93da5da8736a84a69a1de83834bea732c65342687e8db549f153504");
+                //tx is normal
+                //var transactionInfo = httpMonitor.GetTransactionInfo("8bbd7678d93da5da8736a84a69a1de83834bea732c65342687e8db549f153504");
 
                 //Console.WriteLine("txid: " + transactionInfo.Id);
                 //Console.WriteLine("Network: " + transactionInfo.Network);
@@ -270,7 +270,7 @@ namespace Tutorials
                 //balanceInfo = spvMonitor.GetBalance(address);
                 //Console.WriteLine(@"spvMonitor.GetBalance(address): " +
                 //                  (balanceInfo.Confirmed + balanceInfo.Unconfirmed));
-                //#endregion
+                #endregion
 
                 // With SPV, you can also listen for changes
                 //#region TrackChanges
@@ -294,7 +294,7 @@ namespace Tutorials
                 //{
                 //    Console.WriteLine($"Transaction has just confirmed, txid: {args.TransactionId}");
                 //    TransactionInfo txinfo = args.TransactionInfo;
-                    
+
                 //    Console.WriteLine($"Total value exchanged in transaciton: {txinfo.TotalInputAmount}");
                 //};
 

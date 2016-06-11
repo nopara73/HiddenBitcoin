@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -18,6 +19,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
         private readonly string _addressManagerFilePath;
         private readonly string _chainFilePath;
         private readonly string _trackerFilePath;
+        private const string SpvFolderPath = "Spv";
 
         private NodeConnectionParameters _connectionParameters;
         private int _connectionProgressPercent;
@@ -32,9 +34,11 @@ namespace HiddenBitcoin.DataClasses.Monitoring
             SyncState = State.NotStarted;
             ConnectionProgressPercent = 0;
             SyncProgressPercent = 0;
-            _addressManagerFilePath = $@"SPV\AddressManager{Network}.dat";
-            _chainFilePath = $@"SPV\LocalChain{Network}.dat";
-            _trackerFilePath = $@"SPV\Tracker{Network}.dat";
+
+            Directory.CreateDirectory(SpvFolderPath);
+            _addressManagerFilePath = Path.Combine(SpvFolderPath, $@"AddressManager{Network}.dat");
+            _chainFilePath = Path.Combine(SpvFolderPath, $@"LocalChain{Network}.dat");
+            _trackerFilePath = Path.Combine(SpvFolderPath, $@"Tracker{Network}.dat");
 
             InitializeConnectionParameters();
             InitializeNodesGroup();
@@ -222,13 +226,19 @@ namespace HiddenBitcoin.DataClasses.Monitoring
             var nBitcoinAddress = new BitcoinPubKeyAddress(address);
             AssertNetwork(nBitcoinAddress.Network);
 
+            Tracker.Add(nBitcoinAddress);
+            foreach (var data in Tracker.GetDataToTrack())
+            {
+                Console.WriteLine("foo");
+            }
+            Tracker.
+
             throw new NotImplementedException();
         }
 
         public override TransactionInfo GetTransactionInfo(string transactionId)
         {
             // TODO AssertNetwork(can you get network from transactionId?);
-
             throw new NotImplementedException();
         }
 
@@ -285,6 +295,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
             });
             PeriodicSave();
             PeriodicKick();
+            PeriodicStateAdjust();
         }
         private async void PeriodicKick()
         {
@@ -298,7 +309,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
         {
             while (!_disposed)
             {
-                await Task.Delay(100000);
+                await Task.Delay(30000);
                 SaveAsync();
             }
         }
@@ -310,14 +321,23 @@ namespace HiddenBitcoin.DataClasses.Monitoring
                 {
                     AddressManager.SavePeerFile(_addressManagerFilePath, _Network);
 
-                    using (var fs = File.Open(_chainFilePath, FileMode.Create))
-                    {
-                        LocalChain.WriteTo(fs);
-                    }
-
                     using (var fs = File.Open(_trackerFilePath, FileMode.Create))
                     {
                         Tracker.Save(fs);
+                    }
+                }
+                SaveChainAsync();
+            });
+        }
+        private void SaveChainAsync()
+        {
+            Task.Run(() =>
+            {
+                lock (Saving)
+                {
+                    using (var fs = File.Open(_chainFilePath, FileMode.Create))
+                    {
+                        LocalChain.WriteTo(fs);
                     }
                 }
             });
@@ -328,6 +348,51 @@ namespace HiddenBitcoin.DataClasses.Monitoring
             _disposed = true;
             SaveAsync();
             _group?.Disconnect();
+        }
+
+        private int _oldSyncProgressPercent;
+        private async void PeriodicStateAdjust()
+        {
+            while (!_disposed)
+            {
+                await Task.Delay(100);
+
+                if (_group == null)
+                    ConnectionProgressPercent = 0;
+                else if (_group.ConnectedNodes == null)
+                    ConnectionProgressPercent = 0;
+                else
+                {
+                    var nodeCount = _group.ConnectedNodes.Count;
+                    var maxNode = _group.MaximumNodeConnection;
+                    ConnectionProgressPercent = (int) Math.Round((double) (100*nodeCount)/maxNode);
+                }
+
+                if (_group == null)
+                    SyncProgressPercent = 0;
+                else if (_group.ConnectedNodes == null)
+                    SyncProgressPercent = 0;
+                else if (_group.ConnectedNodes.Count == 0)
+                    SyncProgressPercent = 0;
+                else if (_group.ConnectedNodes.First().PeerVersion == null)
+                    SyncProgressPercent = 0;
+                else
+                {
+                    var localHeight = LocalChain.Height;
+                    // TODO Can't find how to get the blockchain height, but it'll do it for this case
+                    var startHeight = _group.ConnectedNodes.First().PeerVersion.StartHeight;
+                    SyncProgressPercent = (int) Math.Round((double) (100*localHeight)/startHeight);
+                }
+
+                if (ConnectionProgressPercent > 100) ConnectionProgressPercent = 100;
+                if (SyncProgressPercent > 100) SyncProgressPercent = 100;
+
+                if (SyncProgressPercent - _oldSyncProgressPercent >= 3)
+                {
+                    _oldSyncProgressPercent = SyncProgressPercent;
+                    SaveChainAsync();
+                }
+            }
         }
     }
 }

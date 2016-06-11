@@ -1,4 +1,6 @@
 ﻿using System;
+using HiddenBitcoin.DataClasses.Balances;
+using HiddenBitcoin.DataClasses.Histories;
 
 namespace HiddenBitcoin.DataClasses.Monitoring
 {
@@ -14,7 +16,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
 
         public Network Network => Convert.ToHiddenBitcoinNetwork(_Network);
 
-        public abstract BalanceInfo GetBalance(string address);
+        public abstract AddressBalanceInfo GetAddressBalanceInfo(string address);
         public abstract TransactionInfo GetTransactionInfo(string transactionId);
         public abstract AddressHistory GetAddressHistory(string address);
 

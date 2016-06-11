@@ -2,14 +2,16 @@
 using NBitcoin;
 using QBitNinja.Client.Models;
 
-namespace HiddenBitcoin.DataClasses
+namespace HiddenBitcoin.DataClasses.Histories
 {
     public class AddressHistoryRecord
     {
         private readonly BalanceOperation _operation;
+        public readonly string Address;
 
-        public AddressHistoryRecord(BalanceOperation operation)
+        public AddressHistoryRecord(string address, BalanceOperation operation)
         {
+            Address = address;
             _operation = operation;
         }
 

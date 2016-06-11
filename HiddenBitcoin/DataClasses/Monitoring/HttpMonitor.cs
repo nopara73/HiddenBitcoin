@@ -1,4 +1,6 @@
-﻿using NBitcoin;
+﻿using HiddenBitcoin.DataClasses.Balances;
+using HiddenBitcoin.DataClasses.Histories;
+using NBitcoin;
 using QBitNinja.Client;
 
 namespace HiddenBitcoin.DataClasses.Monitoring
@@ -12,7 +14,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
             _client = new QBitNinjaClient(_Network);
         }
 
-        public override BalanceInfo GetBalance(string address)
+        public override AddressBalanceInfo GetAddressBalanceInfo(string address)
         {
             var nBitcoinAddress = new BitcoinPubKeyAddress(address);
             AssertNetwork(nBitcoinAddress.Network);
@@ -22,7 +24,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
             var confirmedBalance = balanceSummary.Confirmed.Amount.ToDecimal(MoneyUnit.BTC);
             var unconfirmedBalance = balanceSummary.UnConfirmed.Amount.ToDecimal(MoneyUnit.BTC);
 
-            return new BalanceInfo(address, unconfirmedBalance, confirmedBalance);
+            return new AddressBalanceInfo(address, unconfirmedBalance, confirmedBalance);
         }
 
         public override TransactionInfo GetTransactionInfo(string transactionId)

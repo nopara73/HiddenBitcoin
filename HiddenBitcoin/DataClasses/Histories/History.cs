@@ -1,24 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using QBitNinja.Client.Models;
 
-namespace HiddenBitcoin.DataClasses
+namespace HiddenBitcoin.DataClasses.Histories
 {
-    public class AddressHistory
+    public abstract class History
     {
-        public AddressHistory(string address, IEnumerable<BalanceOperation> operations)
+        protected History(IEnumerable<AddressHistoryRecord> records)
         {
-            Address = address;
-
             Records = new List<AddressHistoryRecord>();
-            foreach (var operation in operations)
+            foreach (var record in records)
             {
-                Records.Add(new AddressHistoryRecord(operation));
+                Records.Add(record);
             }
         }
 
-        public string Address { get; }
         public List<AddressHistoryRecord> Records { get; }
         public decimal TotalReceived => Records.Sum(x => x.Amount > 0 ? Math.Abs(x.Amount) : 0);
         public decimal TotalSpent => Records.Sum(x => x.Amount < 0 ? Math.Abs(x.Amount) : 0);

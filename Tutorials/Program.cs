@@ -16,7 +16,8 @@ namespace Tutorials
         private static void Main()
         {
             //Part1(); // Storing keys
-            Part2(); // Monitoring keys using HTTP
+            //Part2Lesson1(); // Monitoring keys using HTTP
+            Part2Lesson2(); // Monitoring safes using HTTP
 
             Console.ReadLine();
         }
@@ -105,13 +106,13 @@ namespace Tutorials
             }
         }
 
-        private static void Part2()
+        private static void Part2Lesson1()
         {
             var network = Network.MainNet;
 
             var httpMonitor = new HttpMonitor(network);
 
-            var balanceInfo = httpMonitor.GetBalance("1ENCTCkqoJqy2XZ2m2Dy1bRax7hsSnC5Fc");
+            var balanceInfo = httpMonitor.GetAddressBalanceInfo("1ENCTCkqoJqy2XZ2m2Dy1bRax7hsSnC5Fc");
             Console.WriteLine(balanceInfo.Confirmed);
             Console.WriteLine(balanceInfo.Unconfirmed);
 
@@ -163,9 +164,39 @@ namespace Tutorials
             Console.WriteLine(history.TotalReceived + " - " + history.TotalSpent + " = " +
                               (history.TotalReceived - history.TotalSpent));
 
-            balanceInfo = httpMonitor.GetBalance(address);
-            Console.WriteLine(@"httpMonitor.GetBalance(address): " +
+            balanceInfo = httpMonitor.GetAddressBalanceInfo(address);
+            Console.WriteLine(@"httpMonitor.GetAddressBalanceInfo(address): " +
                               (balanceInfo.Confirmed + balanceInfo.Unconfirmed));
+        }
+
+        private static void Part2Lesson2()
+        {
+            #region SetupSafe
+
+            var network = Network.MainNet;
+
+            string walletFilePath;
+            if (network == Network.MainNet)
+                walletFilePath = "MainNetHidden.wallet";
+            else
+                walletFilePath = "TestNetHidden.wallet";
+
+            Safe safe;
+            if (File.Exists(walletFilePath))
+            {
+                safe = Safe.Load("password", walletFilePath);
+                if (safe.Network != network)
+                    throw new Exception("Wrong network");
+            }
+            else
+            {
+                string mnemonic;
+                safe = Safe.Create(out mnemonic, "password", walletFilePath, network);
+            }
+
+            #endregion
+
+            var safeMonitor = new HttpSafeMonitor(safe);
         }
     }
 }

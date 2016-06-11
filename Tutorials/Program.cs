@@ -16,8 +16,7 @@ namespace Tutorials
         private static void Main()
         {
             //Part1(); // Storing keys
-            //Part2(); // Monitoring keys
-            Part2Lesson2(); // Monitoring Safes
+            Part2(); // Monitoring keys
 
             Console.ReadLine();
         }
@@ -167,42 +166,6 @@ namespace Tutorials
             balanceInfo = blockchainMonitor.GetBalance(address);
             Console.WriteLine(@"blockchainMonitor.GetBalance(address): " +
                               (balanceInfo.Confirmed + balanceInfo.Unconfirmed));
-        }
-
-        private static void Part2Lesson2()
-        {
-            var safePath = "Hidden.wallet";
-            string mnemonic;
-            Safe safe;
-            if (!File.Exists(safePath))
-            {
-                safe = Safe.Create(out mnemonic, "password", safePath, Network.TestNet);
-            }
-            else
-            {
-                safe = Safe.Load("password", safePath);
-            }
-
-            var safeMonitor = new SpvSafeMonitor(safe);
-            try
-            {
-                Console.WriteLine(safe.GetAddress(5));
-
-                safeMonitor.StartConnecting();
-                while (safeMonitor.ConnectionProgressPercent != 100)
-                {
-                    Thread.Sleep(1000);
-                    Console.WriteLine($"Connected: {safeMonitor.ConnectionProgressPercent}%");
-                    Console.WriteLine($"Synced: {safeMonitor.SyncProgressPercent}%");
-                }
-
-                Console.WriteLine("Confirmed wallet balance: " + safeMonitor.GetBalance().Confirmed);
-                Console.WriteLine("Unconfirmed wallet balance: " + safeMonitor.GetBalance().Unconfirmed);
-            }
-            finally
-            {
-                safeMonitor.Disconnect();
-            }
         }
     }
 }

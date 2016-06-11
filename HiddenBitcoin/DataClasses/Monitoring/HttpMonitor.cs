@@ -31,7 +31,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
 
             var transactionIdUint256 = new uint256(transactionId);
             var transactionResponse = _client.GetTransaction(transactionIdUint256).Result;
-            
+
             return new TransactionInfo(transactionResponse, Network);
         }
 

@@ -20,12 +20,13 @@ namespace HiddenBitcoin.DataClasses.Monitoring
 
         protected void AssertNetwork(Network network)
         {
-            if(network != Network)
+            if (network != Network)
                 throw new Exception("Wrong network");
         }
+
         protected void AssertNetwork(NBitcoin.Network network)
         {
-            if(network != _Network)
+            if (network != _Network)
                 throw new Exception("Wrong network");
         }
     }

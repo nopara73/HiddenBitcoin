@@ -169,7 +169,7 @@ namespace Tutorials
         {
             #region SetupSafe
 
-            var network = Network.MainNet;
+            var network = Network.TestNet;
 
             string walletFilePath;
             if (network == Network.MainNet)
@@ -192,9 +192,42 @@ namespace Tutorials
 
             #endregion
 
-            var safeMonitor = new HttpSafeMonitor(safe);
+            #region InitializeHttpSafeMonitor
 
-            safeMonitor.GetSafeBalanceInfo();
+            var safeMonitor = new HttpSafeMonitor(safe, addressCount: 1000);
+
+            // Report initialization progress
+            safeMonitor.InitializationStateChanged += delegate(object sender, EventArgs args)
+            {
+                var monitor = (HttpSafeMonitor) sender;
+                Console.WriteLine($"Initialization state: {monitor.InitializationState}");
+            };
+            safeMonitor.InitializationProgressPercentChanged += delegate(object sender, EventArgs args)
+            {
+                var monitor = (HttpSafeMonitor) sender;
+                Console.WriteLine($"Initializing: {monitor.InitializationProgressPercent}%");
+            };
+
+            // Let's wait until initialized
+            while (safeMonitor.InitializationState != State.Ready)
+                Thread.Sleep(100);
+
+            #endregion
+
+            Console.WriteLine(safeMonitor.Safe.GetAddress(0));
+            Console.WriteLine(safeMonitor.Safe.GetAddress(10));
+            Console.WriteLine(safeMonitor.Safe.GetAddress(999));
+
+            var safeBalanceInfo = safeMonitor.GetSafeBalanceInfo();
+            Console.WriteLine($"Number of monitored addresses: {safeBalanceInfo.MonitoredAddressCount}");
+            Console.WriteLine($"Balance: {safeBalanceInfo.Balance}");
+            Console.WriteLine($"Confirmed: {safeBalanceInfo.Confirmed}");
+            Console.WriteLine($"Unconfirmed: {safeBalanceInfo.Unconfirmed}");
+            foreach (var balanceInfo in safeBalanceInfo.AddressBalances)
+            {
+                if(balanceInfo.Balance != 0)
+                    Console.WriteLine($"{balanceInfo.Address}: {balanceInfo.Balance}");
+            }
         }
     }
 }

@@ -7,7 +7,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
 {
     public class HttpMonitor : Monitor
     {
-        private readonly QBitNinjaClient _client;
+        protected readonly QBitNinjaClient _client;
 
         public HttpMonitor(Network network) : base(network)
         {

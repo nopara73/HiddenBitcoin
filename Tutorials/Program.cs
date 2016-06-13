@@ -85,10 +85,6 @@ namespace Tutorials
                 Console.WriteLine(loadedSafe.StealthScanPrivateKey);
                 Console.WriteLine(loadedSafe.StealthSpendPrivateKey);
 
-                // The wallet has a clean part of it, more on that later
-                Console.WriteLine(safe.GetAddress(3, clean: true));
-                Console.WriteLine(safe.GetPrivateKey(5, clean: true));
-
                 //Safe[] safes = new[] {hiddenSafe, recoveredSafe, loadedSafe};
                 //foreach (var safe in safes)
                 //{
@@ -197,6 +193,8 @@ namespace Tutorials
             #endregion
 
             var safeMonitor = new HttpSafeMonitor(safe);
+
+            safeMonitor.GetSafeBalanceInfo();
         }
     }
 }

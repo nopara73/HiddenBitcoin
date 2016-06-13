@@ -27,31 +27,25 @@ namespace HiddenBitcoin.DataClasses.KeyManagement
         public string SeedPublicKey => _seedPrivateKey.Neuter().GetWif(_network).ToWif();
         public Network Network => Convert.ToHiddenBitcoinNetwork(_network);
 
-        public string GetAddress(int index, bool clean = false)
+        public string GetAddress(int index)
         {
             var startPath = NormalHdPath;
-            if (clean)
-                startPath = CleanHdPath;
 
             var keyPath = new KeyPath(startPath + "/" + index);
             return _seedPrivateKey.Derive(keyPath).ScriptPubKey.GetDestinationAddress(_network).ToWif();
         }
 
-        public string GetPrivateKey(int index, bool clean = false)
+        public string GetPrivateKey(int index)
         {
             var startPath = NormalHdPath;
-            if (clean)
-                startPath = CleanHdPath;
 
             var keyPath = new KeyPath(startPath + "/" + index);
             return _seedPrivateKey.Derive(keyPath).GetWif(_network).ToWif();
         }
 
-        public PrivateKeyAddressPair GetPrivateKeyAddressPair(int index, bool clean = false)
+        public PrivateKeyAddressPair GetPrivateKeyAddressPair(int index)
         {
             var startPath = NormalHdPath;
-            if (clean)
-                startPath = CleanHdPath;
 
             var keyPath = new KeyPath(startPath + "/" + index);
             var foo = _seedPrivateKey.Derive(keyPath).GetWif(_network);
@@ -169,7 +163,6 @@ namespace HiddenBitcoin.DataClasses.KeyManagement
 
         private const string StealthPath = "0'";
         private const string NormalHdPath = "1'";
-        private const string CleanHdPath = "2'";
 
         #endregion
 

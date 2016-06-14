@@ -9,6 +9,7 @@ using HiddenBitcoin.DataClasses.Histories;
 using HiddenBitcoin.DataClasses.KeyManagement;
 using NBitcoin;
 using QBitNinja.Client;
+using QBitNinja.Client.Models;
 
 namespace HiddenBitcoin.DataClasses.Monitoring
 {
@@ -21,9 +22,6 @@ namespace HiddenBitcoin.DataClasses.Monitoring
 
         public HttpSafeMonitor(Safe safe, int addressCount) : base(safe.Network)
         {
-            InitializationState = State.NotStarted;
-            InitializationProgressPercent = 0;
-
             AssertNetwork(safe.Network);
             Safe = safe;
             AddressCount = addressCount;
@@ -94,6 +92,19 @@ namespace HiddenBitcoin.DataClasses.Monitoring
             }
         }
 
+        public List<string> MonitoredAddresses
+        {
+            get
+            {
+                var monitoredAddresses = new List<string>();
+                for (var i = 0; i < AddressCount; i++)
+                {
+                    monitoredAddresses.Add(Safe.GetAddress(i));
+                }
+                return monitoredAddresses;
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected void OnPropertyChanged(PropertyChangedEventArgs e)
@@ -123,6 +134,8 @@ namespace HiddenBitcoin.DataClasses.Monitoring
         {
             await Task.Run(() =>
             {
+                InitializationState = State.NotStarted;
+                InitializationProgressPercent = 0;
                 List<string> outOfSyncAddresses;
                 do
                 {
@@ -166,18 +179,6 @@ namespace HiddenBitcoin.DataClasses.Monitoring
             return safeAddresses.Where(safeAddress => !qbitAddresses.Contains(safeAddress)).ToList();
         }
 
-        public List<string> MonitoredAddresses
-        {
-            get
-            {
-                var monitoredAddresses = new List<string>();
-                for (var i = 0; i < AddressCount; i++)
-                {
-                    monitoredAddresses.Add(Safe.GetAddress(i));
-                }
-                return monitoredAddresses;
-            }
-        }
         public SafeBalanceInfo GetSafeBalanceInfo()
         {
             AssertState();
@@ -192,20 +193,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
                 foreach (var coin in operation.ReceivedCoins)
                 {
                     string address;
-                    try
-                    {
-                        address = coin.GetScriptCode().GetDestinationAddress(_Network).ToWif();
-                    }
-                    catch
-                    {
-                        // Not concerned
-                        continue;
-                    }
-                    if (!MonitoredAddresses.Contains(address))
-                    {
-                        // Not concerned
-                        continue;
-                    }
+                    if (!SafeContainsCoin(out address, coin)) continue;
 
                     var amount = operation.Amount.ToDecimal(MoneyUnit.BTC);
 
@@ -217,20 +205,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
                 foreach (var coin in operation.SpentCoins)
                 {
                     string address;
-                    try
-                    {
-                        address = coin.GetScriptCode().GetDestinationAddress(_Network).ToWif();
-                    }
-                    catch
-                    {
-                        // Not concerned
-                        continue;
-                    }
-                    if (!MonitoredAddresses.Contains(address))
-                    {
-                        // Not concerned
-                        continue;
-                    }
+                    if (!SafeContainsCoin(out address, coin)) continue;
 
                     var amount = operation.Amount.ToDecimal(MoneyUnit.BTC);
 
@@ -274,7 +249,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
 
             foreach (var address in MonitoredAddresses)
             {
-                if(!uniqueAddresses.Contains(address))
+                if (!uniqueAddresses.Contains(address))
                     addressBalanceInfos.Add(new AddressBalanceInfo(address, 0m, 0m));
             }
 
@@ -285,17 +260,67 @@ namespace HiddenBitcoin.DataClasses.Monitoring
         {
             AssertState();
 
-            var addressHistories = new List<AddressHistory>();
-
             var balanceOperations = _qBitNinjaWalletClient.GetBalance().Result.Operations;
-            
+
+
+            // Find all the operations concerned to one address
+            // address, balanceoperationlist
+            var addressOperationPairs = new List<Tuple<string, BalanceOperation>>();
+            foreach (var operation in balanceOperations)
+            {
+                foreach (var coin in operation.ReceivedCoins)
+                {
+                    string address;
+                    if (SafeContainsCoin(out address, coin))
+                        addressOperationPairs.Add(new Tuple<string, BalanceOperation>(address, operation));
+                }
+
+                foreach (var coin in operation.SpentCoins)
+                {
+                    string address;
+                    if (SafeContainsCoin(out address, coin))
+                        addressOperationPairs.Add(new Tuple<string, BalanceOperation>(address, operation));
+                }
+            }
+
+            var addressOperationsDict = new Dictionary<string, List<BalanceOperation>>();
+            foreach (var pair in addressOperationPairs)
+            {
+                if (addressOperationsDict.Keys.Contains(pair.Item1))
+                {
+                    addressOperationsDict[pair.Item1].Add(pair.Item2);
+                }
+                else
+                {
+                    addressOperationsDict.Add(pair.Item1, new List<BalanceOperation> {pair.Item2});
+                }
+            }
+
+            var addressHistories =
+                addressOperationsDict.Select(pair => new AddressHistory(pair.Key, pair.Value)).ToList();
+
 
             return new SafeHistory(Safe, addressHistories);
         }
 
+        private bool SafeContainsCoin(out string address, ICoin coin)
+        {
+            try
+            {
+                address = coin.GetScriptCode().GetDestinationAddress(_Network).ToWif();
+            }
+            catch
+            {
+                // Not concerned, safe can't contain something like this
+                address = null;
+                return false;
+            }
+            return MonitoredAddresses.Contains(address);
+        }
+
         private void AssertState()
         {
-            if(InitializationState != State.Ready)
+            if (InitializationState != State.Ready)
                 throw new Exception("HttpSafeMonitor is not initialized.");
         }
     }

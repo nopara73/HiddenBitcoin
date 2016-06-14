@@ -21,8 +21,16 @@ namespace HiddenBitcoin.DataClasses.Histories
         {
             get
             {
-                var amount = (from Coin coin in _operation.ReceivedCoins let address = coin.GetScriptCode().GetDestinationAddress(new BitcoinPubKeyAddress(Address).Network).ToWif() where address == Address select coin.Amount.ToDecimal(MoneyUnit.BTC)).Sum();
-                return (from Coin coin in _operation.SpentCoins let address = coin.GetScriptCode().GetDestinationAddress(new BitcoinPubKeyAddress(Address).Network).ToWif() where address == Address select coin).Aggregate(amount, (current, coin) => current - coin.Amount.ToDecimal(MoneyUnit.BTC));
+                var amount = (from Coin coin in _operation.ReceivedCoins
+                    let address =
+                        coin.GetScriptCode().GetDestinationAddress(new BitcoinPubKeyAddress(Address).Network).ToWif()
+                    where address == Address
+                    select coin.Amount.ToDecimal(MoneyUnit.BTC)).Sum();
+                return (from Coin coin in _operation.SpentCoins
+                    let address =
+                        coin.GetScriptCode().GetDestinationAddress(new BitcoinPubKeyAddress(Address).Network).ToWif()
+                    where address == Address
+                    select coin).Aggregate(amount, (current, coin) => current - coin.Amount.ToDecimal(MoneyUnit.BTC));
             }
         }
 

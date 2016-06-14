@@ -194,7 +194,7 @@ namespace Tutorials
 
             #region InitializeHttpSafeMonitor
 
-            var safeMonitor = new HttpSafeMonitor(safe, addressCount: 100);
+            var safeMonitor = new HttpSafeMonitor(safe, addressCount: 1000);
 
             // Report initialization progress
             safeMonitor.InitializationStateChanged += delegate(object sender, EventArgs args)
@@ -225,13 +225,18 @@ namespace Tutorials
             Console.WriteLine($"Unconfirmed: {safeBalanceInfo.Unconfirmed}");
             foreach (var balanceInfo in safeBalanceInfo.AddressBalances)
             {
-                if(balanceInfo.Balance != 0)
+                if (balanceInfo.Balance != 0)
                     Console.WriteLine($"{balanceInfo.Address}: {balanceInfo.Balance}");
             }
 
             var history = safeMonitor.GetSafeHistory();
 
-            
+            Console.WriteLine("totalreceived: " + history.TotalReceived);
+            Console.WriteLine("totalspent: " + history.TotalSpent);
+            foreach (var record in history.Records)
+            {
+                Console.WriteLine(record.Address + " " + record.Amount);
+            }
         }
     }
 }

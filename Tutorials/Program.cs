@@ -140,9 +140,9 @@ namespace Tutorials
             }
 
             //lot of transactions:
-            //var address = "13eh4wPLe1nCsh8FXJNpL6e9D1edWNT1Ub";
+            var address = "13eh4wPLe1nCsh8FXJNpL6e9D1edWNT1Ub";
             //only few transactions:
-            var address = "19V1JJ68Ee57tKnG7NikH4tU93xqMShCyD";
+            //var address = "19V1JJ68Ee57tKnG7NikH4tU93xqMShCyD";
             var history =
                 httpMonitor.GetAddressHistory(address);
 
@@ -151,7 +151,7 @@ namespace Tutorials
             var allTransactionsConfirmed = true;
             foreach (var record in history.Records)
             {
-                Console.WriteLine("txid: " + record.TransactionId);
+                Console.WriteLine(record.TransactionId + " : " + record.Amount);
                 allTransactionsConfirmed = allTransactionsConfirmed && record.Confirmed;
             }
             Console.WriteLine("All transactions are confirmed: " + allTransactionsConfirmed);
@@ -194,7 +194,7 @@ namespace Tutorials
 
             #region InitializeHttpSafeMonitor
 
-            var safeMonitor = new HttpSafeMonitor(safe, addressCount: 1000);
+            var safeMonitor = new HttpSafeMonitor(safe, addressCount: 100);
 
             // Report initialization progress
             safeMonitor.InitializationStateChanged += delegate(object sender, EventArgs args)
@@ -228,6 +228,10 @@ namespace Tutorials
                 if(balanceInfo.Balance != 0)
                     Console.WriteLine($"{balanceInfo.Address}: {balanceInfo.Balance}");
             }
+
+            var history = safeMonitor.GetSafeHistory();
+
+            
         }
     }
 }

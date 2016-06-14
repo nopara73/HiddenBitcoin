@@ -9,7 +9,6 @@ using HiddenBitcoin.DataClasses.Histories;
 using HiddenBitcoin.DataClasses.KeyManagement;
 using NBitcoin;
 using QBitNinja.Client;
-using QBitNinja.Client.Models;
 
 namespace HiddenBitcoin.DataClasses.Monitoring
 {
@@ -134,6 +133,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
 
                     foreach (var address in outOfSyncAddresses)
                     {
+                        AdjustState(outOfSyncAddresses.IndexOf(address));
                         _qBitNinjaWalletClient.CreateAddressIfNotExists(new BitcoinPubKeyAddress(address));
                     }
                 } while (outOfSyncAddresses.Count != 0);
@@ -285,7 +285,12 @@ namespace HiddenBitcoin.DataClasses.Monitoring
         {
             AssertState();
 
-            throw new NotImplementedException();
+            var addressHistories = new List<AddressHistory>();
+
+            var balanceOperations = _qBitNinjaWalletClient.GetBalance().Result.Operations;
+            
+
+            return new SafeHistory(Safe, addressHistories);
         }
 
         private void AssertState()

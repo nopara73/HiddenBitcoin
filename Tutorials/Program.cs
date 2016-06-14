@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Security.Policy;
 using System.Threading;
 using HiddenBitcoin.DataClasses;
@@ -194,7 +195,7 @@ namespace Tutorials
 
             #region InitializeHttpSafeMonitor
 
-            var safeMonitor = new HttpSafeMonitor(safe, addressCount: 1000);
+            var safeMonitor = new HttpSafeMonitor(safe, addressCount: 1002);
 
             // Report initialization progress
             safeMonitor.InitializationStateChanged += delegate(object sender, EventArgs args)
@@ -218,7 +219,7 @@ namespace Tutorials
             Console.WriteLine(safeMonitor.Safe.GetAddress(10));
             Console.WriteLine(safeMonitor.Safe.GetAddress(999));
 
-            var safeBalanceInfo = safeMonitor.GetSafeBalanceInfo();
+            var safeBalanceInfo = safeMonitor.SafeBalanceInfo;
             Console.WriteLine($"Number of monitored addresses: {safeBalanceInfo.MonitoredAddressCount}");
             Console.WriteLine($"Balance: {safeBalanceInfo.Balance}");
             Console.WriteLine($"Confirmed: {safeBalanceInfo.Confirmed}");
@@ -229,7 +230,7 @@ namespace Tutorials
                     Console.WriteLine($"{balanceInfo.Address}: {balanceInfo.Balance}");
             }
 
-            var history = safeMonitor.GetSafeHistory();
+            var history = safeMonitor.SafeHistory;
 
             Console.WriteLine("totalreceived: " + history.TotalReceived);
             Console.WriteLine("totalspent: " + history.TotalSpent);
@@ -237,6 +238,20 @@ namespace Tutorials
             {
                 Console.WriteLine(record.Address + " " + record.Amount);
             }
+
+            #region Listening
+
+            safeMonitor.BalanceChanged += delegate(object sender, EventArgs args)
+            {
+                var monitor = (HttpSafeMonitor) sender;
+
+                Console.WriteLine($"Confirmed balance of safe: {monitor.SafeBalanceInfo.Confirmed}");
+                Console.WriteLine($"Unconfirmed balance of safe: {monitor.SafeBalanceInfo.Unconfirmed}");
+                Console.WriteLine(
+                    $"TransacitonId: {monitor.SafeHistory.Records.OrderBy(x => x.DateTime).Last().TransactionId}");
+            };
+
+            #endregion
         }
     }
 }

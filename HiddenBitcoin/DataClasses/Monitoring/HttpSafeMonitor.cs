@@ -16,20 +16,34 @@ namespace HiddenBitcoin.DataClasses.Monitoring
     public class HttpSafeMonitor : HttpMonitor, INotifyPropertyChanged
     {
         private readonly WalletClient _qBitNinjaWalletClient;
+
         private int _initializationProgressPercent;
         private State _initializationState;
-
+        private SafeBalanceInfo _safeBalanceInfo;
+        private SafeHistory _safeHistory;
+        private decimal _unconfirmedBalance;
 
         public HttpSafeMonitor(Safe safe, int addressCount) : base(safe.Network)
         {
             AssertNetwork(safe.Network);
-            Safe = safe;
             AddressCount = addressCount;
+            Safe = new HttpSafe(safe, addressCount);
 
             _qBitNinjaWalletClient = Client.GetWalletClient(QBitNinjaWalletName);
             _qBitNinjaWalletClient.CreateIfNotExists().Wait();
 
             StartInitializingQBitNinjaWallet();
+        }
+
+        public SafeHistory SafeHistory
+        {
+            get
+            {
+                if (_safeHistory == null)
+                    UpdateSafeHistoryAndBalanceInfo();
+                return _safeHistory;
+            }
+            private set { _safeHistory = value; }
         }
 
         public State InitializationState
@@ -50,6 +64,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
             private set
             {
                 if (value == _initializationProgressPercent) return;
+
                 switch (value)
                 {
                     case 0:
@@ -73,7 +88,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
 
         public int AddressCount { get; }
 
-        public Safe Safe { get; }
+        public HttpSafe Safe { get; }
 
         private string QBitNinjaWalletName
         {
@@ -105,7 +120,44 @@ namespace HiddenBitcoin.DataClasses.Monitoring
             }
         }
 
+        private decimal UnconfirmedBalance
+        {
+            set
+            {
+                if (value == _unconfirmedBalance)
+                    return;
+                _unconfirmedBalance = value;
+                OnBalanceChanged();
+            }
+        }
+
+        public SafeBalanceInfo SafeBalanceInfo
+        {
+            get
+            {
+                if (_safeBalanceInfo == null)
+                    UpdateSafeHistoryAndBalanceInfo();
+                return _safeBalanceInfo;
+            }
+            set
+            {
+                _safeBalanceInfo = value;
+                UnconfirmedBalance = value.Unconfirmed;
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
+
+        // ReSharper disable once FunctionNeverReturns https://youtrack.jetbrains.com/issue/RSRP-425337
+        private async void PeriodicUpdate()
+        {
+            while (true)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(1));
+                if (InitializationState == State.Ready)
+                    UpdateSafeHistoryAndBalanceInfo();
+            }
+        }
 
         protected void OnPropertyChanged(PropertyChangedEventArgs e)
         {
@@ -119,6 +171,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
 
         public event EventHandler InitializationStateChanged;
         public event EventHandler InitializationProgressPercentChanged;
+        public event EventHandler BalanceChanged;
 
         protected virtual void OnInitializationStateChanged()
         {
@@ -151,6 +204,8 @@ namespace HiddenBitcoin.DataClasses.Monitoring
                     }
                 } while (outOfSyncAddresses.Count != 0);
             });
+
+            PeriodicUpdate();
         }
 
         private void AdjustState(int syncedAddressCount)
@@ -183,8 +238,20 @@ namespace HiddenBitcoin.DataClasses.Monitoring
         {
             AssertState();
 
+            UpdateSafeHistoryAndBalanceInfo();
+
+            return SafeBalanceInfo;
+        }
+
+        private void UpdateSafeHistoryAndBalanceInfo()
+        {
+            AssertState();
+
             var balanceOperations = _qBitNinjaWalletClient.GetBalance().Result.Operations;
 
+            // Find all the operations concerned to one address
+            // address, balanceoperationlist
+            var addressOperationPairs = new List<Tuple<string, BalanceOperation>>();
             // address, unconfirmed, confirmed
             var receivedAddressAmountPairs = new List<Tuple<string, decimal, decimal>>();
             var spentAddressAmountPairs = new List<Tuple<string, decimal, decimal>>();
@@ -196,10 +263,11 @@ namespace HiddenBitcoin.DataClasses.Monitoring
                     if (!SafeContainsCoin(out address, coin)) continue;
 
                     var amount = operation.Amount.ToDecimal(MoneyUnit.BTC);
-
                     receivedAddressAmountPairs.Add(operation.Confirmations == 0
                         ? new Tuple<string, decimal, decimal>(address, amount, 0m)
                         : new Tuple<string, decimal, decimal>(address, 0m, amount));
+
+                    addressOperationPairs.Add(new Tuple<string, BalanceOperation>(address, operation));
                 }
 
                 foreach (var coin in operation.SpentCoins)
@@ -208,22 +276,32 @@ namespace HiddenBitcoin.DataClasses.Monitoring
                     if (!SafeContainsCoin(out address, coin)) continue;
 
                     var amount = operation.Amount.ToDecimal(MoneyUnit.BTC);
-
                     spentAddressAmountPairs.Add(operation.Confirmations == 0
                         ? new Tuple<string, decimal, decimal>(address, amount, 0m)
                         : new Tuple<string, decimal, decimal>(address, 0m, amount));
+
+                    addressOperationPairs.Add(new Tuple<string, BalanceOperation>(address, operation));
                 }
             }
 
+            var addressOperationsDict = new Dictionary<string, List<BalanceOperation>>();
+            foreach (var pair in addressOperationPairs)
+                if (addressOperationsDict.Keys.Contains(pair.Item1))
+                    addressOperationsDict[pair.Item1].Add(pair.Item2);
+                else
+                    addressOperationsDict.Add(pair.Item1, new List<BalanceOperation> {pair.Item2});
+
+            var addressHistories =
+                addressOperationsDict.Select(pair => new AddressHistory(pair.Key, pair.Value)).ToList();
+
+
+            SafeHistory = new SafeHistory(Safe, addressHistories);
+
             var uniqueAddresses = new HashSet<string>();
             foreach (var pair in receivedAddressAmountPairs)
-            {
                 uniqueAddresses.Add(pair.Item1);
-            }
             foreach (var pair in spentAddressAmountPairs)
-            {
                 uniqueAddresses.Add(pair.Item1);
-            }
 
             var addressBalanceInfos = new List<AddressBalanceInfo>();
 
@@ -247,60 +325,20 @@ namespace HiddenBitcoin.DataClasses.Monitoring
                 addressBalanceInfos.Add(new AddressBalanceInfo(address, unconfirmed, confirmed));
             }
 
-            foreach (var address in MonitoredAddresses)
-            {
-                if (!uniqueAddresses.Contains(address))
-                    addressBalanceInfos.Add(new AddressBalanceInfo(address, 0m, 0m));
-            }
+            addressBalanceInfos.AddRange(from address in MonitoredAddresses
+                where !uniqueAddresses.Contains(address)
+                select new AddressBalanceInfo(address, 0m, 0m));
 
-            return new SafeBalanceInfo(Safe, addressBalanceInfos);
+            SafeBalanceInfo = new SafeBalanceInfo(Safe, addressBalanceInfos);
         }
 
         public SafeHistory GetSafeHistory()
         {
             AssertState();
 
-            var balanceOperations = _qBitNinjaWalletClient.GetBalance().Result.Operations;
+            UpdateSafeHistoryAndBalanceInfo();
 
-
-            // Find all the operations concerned to one address
-            // address, balanceoperationlist
-            var addressOperationPairs = new List<Tuple<string, BalanceOperation>>();
-            foreach (var operation in balanceOperations)
-            {
-                foreach (var coin in operation.ReceivedCoins)
-                {
-                    string address;
-                    if (SafeContainsCoin(out address, coin))
-                        addressOperationPairs.Add(new Tuple<string, BalanceOperation>(address, operation));
-                }
-
-                foreach (var coin in operation.SpentCoins)
-                {
-                    string address;
-                    if (SafeContainsCoin(out address, coin))
-                        addressOperationPairs.Add(new Tuple<string, BalanceOperation>(address, operation));
-                }
-            }
-
-            var addressOperationsDict = new Dictionary<string, List<BalanceOperation>>();
-            foreach (var pair in addressOperationPairs)
-            {
-                if (addressOperationsDict.Keys.Contains(pair.Item1))
-                {
-                    addressOperationsDict[pair.Item1].Add(pair.Item2);
-                }
-                else
-                {
-                    addressOperationsDict.Add(pair.Item1, new List<BalanceOperation> {pair.Item2});
-                }
-            }
-
-            var addressHistories =
-                addressOperationsDict.Select(pair => new AddressHistory(pair.Key, pair.Value)).ToList();
-
-
-            return new SafeHistory(Safe, addressHistories);
+            return SafeHistory;
         }
 
         private bool SafeContainsCoin(out string address, ICoin coin)
@@ -321,7 +359,47 @@ namespace HiddenBitcoin.DataClasses.Monitoring
         private void AssertState()
         {
             if (InitializationState != State.Ready)
-                throw new Exception("HttpSafeMonitor is not initialized.");
+                throw new Exception("HttpSafeMonitor is not synced with QBitNinja wallet.");
+        }
+
+        protected virtual void OnBalanceChanged()
+        {
+            BalanceChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    public class HttpSafe : Safe
+    {
+        public HttpSafe(Safe safe, int addressCount) : base(safe)
+        {
+            AddressCount = addressCount;
+        }
+
+        public int AddressCount { get; set; }
+
+        public override string GetAddress(int index)
+        {
+            AssertAddressCount(index);
+            return base.GetAddress(index);
+        }
+
+        public override string GetPrivateKey(int index)
+        {
+            AssertAddressCount(index);
+            return base.GetPrivateKey(index);
+        }
+
+        public override PrivateKeyAddressPair GetPrivateKeyAddressPair(int index)
+        {
+            AssertAddressCount(index);
+            return base.GetPrivateKeyAddressPair(index);
+        }
+
+        private void AssertAddressCount(int index)
+        {
+            if (index >= AddressCount)
+                throw new IndexOutOfRangeException(
+                    $"Value of index is {index}, it cannot be higher than {AddressCount - 1}");
         }
     }
 }

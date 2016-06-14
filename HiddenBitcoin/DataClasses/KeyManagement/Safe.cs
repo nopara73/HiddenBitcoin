@@ -10,7 +10,7 @@ namespace HiddenBitcoin.DataClasses.KeyManagement
         private NBitcoin.Network _network;
         private ExtKey _seedPrivateKey;
 
-        private Safe(string password, string walletFilePath, Network network, string mnemonicString = null)
+        protected Safe(string password, string walletFilePath, Network network, string mnemonicString = null)
         {
             SetNetwork(network);
 
@@ -22,12 +22,19 @@ namespace HiddenBitcoin.DataClasses.KeyManagement
             WalletFilePath = walletFilePath;
         }
 
-        public string WalletFilePath { get; private set; }
+        public Safe(Safe safe)
+        {
+            _network = safe._network;
+            _seedPrivateKey = safe._seedPrivateKey;
+            WalletFilePath = safe.WalletFilePath;
+        }
+
+        public string WalletFilePath { get; }
         public string Seed => _seedPrivateKey.GetWif(_network).ToWif();
         public string SeedPublicKey => _seedPrivateKey.Neuter().GetWif(_network).ToWif();
         public Network Network => Convert.ToHiddenBitcoinNetwork(_network);
 
-        public string GetAddress(int index)
+        public virtual string GetAddress(int index)
         {
             var startPath = NormalHdPath;
 
@@ -35,7 +42,7 @@ namespace HiddenBitcoin.DataClasses.KeyManagement
             return _seedPrivateKey.Derive(keyPath).ScriptPubKey.GetDestinationAddress(_network).ToWif();
         }
 
-        public string GetPrivateKey(int index)
+        public virtual string GetPrivateKey(int index)
         {
             var startPath = NormalHdPath;
 
@@ -43,7 +50,7 @@ namespace HiddenBitcoin.DataClasses.KeyManagement
             return _seedPrivateKey.Derive(keyPath).GetWif(_network).ToWif();
         }
 
-        public PrivateKeyAddressPair GetPrivateKeyAddressPair(int index)
+        public virtual PrivateKeyAddressPair GetPrivateKeyAddressPair(int index)
         {
             var startPath = NormalHdPath;
 

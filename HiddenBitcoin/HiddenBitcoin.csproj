@@ -51,6 +51,8 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataClasses\AddressAmountPair.cs" />
+    <Compile Include="DataClasses\FeeType.cs" />
     <Compile Include="DataClasses\Histories\AddressHistory.cs" />
     <Compile Include="DataClasses\Histories\AddressHistoryRecord.cs" />
     <Compile Include="DataClasses\Balances\BalanceInfo.cs" />
@@ -59,6 +61,7 @@
     <Compile Include="DataClasses\Balances\AddressBalanceInfo.cs" />
     <Compile Include="DataClasses\Histories\History.cs" />
     <Compile Include="DataClasses\Histories\SafeHistory.cs" />
+    <Compile Include="DataClasses\HttpSender.cs" />
     <Compile Include="DataClasses\Monitoring\HttpSafeMonitor.cs" />
     <Compile Include="DataClasses\Monitoring\Monitor.cs" />
     <Compile Include="DataClasses\Network.cs" />

@@ -44,11 +44,12 @@ namespace HiddenBitcoin.DataClasses.KeyManagement
 
         public virtual string GetPrivateKey(int index)
         {
-            var startPath = NormalHdPath;
+            const string startPath = NormalHdPath;
 
             var keyPath = new KeyPath(startPath + "/" + index);
             return _seedPrivateKey.Derive(keyPath).GetWif(_network).ToWif();
         }
+
 
         public virtual PrivateKeyAddressPair GetPrivateKeyAddressPair(int index)
         {

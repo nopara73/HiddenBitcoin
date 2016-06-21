@@ -27,7 +27,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
         {
             AssertNetwork(safe.Network);
             AddressCount = addressCount;
-            Safe = new HttpSafe(safe, addressCount);
+            Safe = new HttpSafe(safe, addressCount, this);
 
             _qBitNinjaWalletClient = Client.GetWalletClient(QBitNinjaWalletName);
             _qBitNinjaWalletClient.CreateIfNotExists().Wait();
@@ -370,12 +370,36 @@ namespace HiddenBitcoin.DataClasses.Monitoring
 
     public class HttpSafe : Safe
     {
-        public HttpSafe(Safe safe, int addressCount) : base(safe)
+        public HttpSafe(Safe safe, int addressCount, HttpSafeMonitor httpSafeMonitor) : base(safe)
         {
             AddressCount = addressCount;
+            HttpSafeMonitor = httpSafeMonitor;
         }
 
-        public int AddressCount { get; set; }
+        public int AddressCount { get; }
+        public HttpSafeMonitor HttpSafeMonitor { get; }
+
+        public List<string> UnusedAddresses
+        {
+            get
+            {
+                var unusedAddresses = HttpSafeMonitor.MonitoredAddresses.ToList();
+                foreach (var addressHistoryRecord in HttpSafeMonitor.SafeHistory.Records)
+                {
+                    unusedAddresses.Remove(addressHistoryRecord.Address);
+                }
+
+                if (unusedAddresses.Count == 0)
+                    throw new ArgumentException("Every address of HttpSafe has been used.");
+
+                return unusedAddresses;
+            }
+        }
+
+        public List<string> NotEmptyAddresses
+            => (from addressBalanceInfo in HttpSafeMonitor.SafeBalanceInfo.AddressBalances
+                where addressBalanceInfo.Balance > 0
+                select addressBalanceInfo.Address).ToList();
 
         public override string GetAddress(int index)
         {
@@ -387,6 +411,13 @@ namespace HiddenBitcoin.DataClasses.Monitoring
         {
             AssertAddressCount(index);
             return base.GetPrivateKey(index);
+        }
+
+        public string GetPrivateKey(string address)
+        {
+            if (!HttpSafeMonitor.MonitoredAddresses.Contains(address))
+                throw new Exception("No private key of address in HttpSafe");
+            return GetPrivateKey(HttpSafeMonitor.MonitoredAddresses.IndexOf(address));
         }
 
         public override PrivateKeyAddressPair GetPrivateKeyAddressPair(int index)

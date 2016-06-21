@@ -19,8 +19,8 @@ namespace Tutorials
         private static void Main()
         {
             //Part1(); // Storing keys
-            Part2Lesson1(); // Monitoring keys using HTTP
-            //Part2Lesson2(); // Monitoring safes using HTTP
+            //Part2Lesson1(); // Monitoring keys using HTTP
+            Part2Lesson2(); // Monitoring safes using HTTP
 
             Console.ReadLine();
         }
@@ -113,19 +113,19 @@ namespace Tutorials
             var httpMonitor = new HttpMonitor(network);
 
             // Checking address balances
-            AddressBalanceInfo balanceInfo = httpMonitor.GetAddressBalanceInfo("1ENCTCkqoJqy2XZ2m2Dy1bRax7hsSnC5Fc");
+            var balanceInfo = httpMonitor.GetAddressBalanceInfo("1ENCTCkqoJqy2XZ2m2Dy1bRax7hsSnC5Fc");
             Console.WriteLine($"Address balance: {balanceInfo.Balance}"); // 0,05474889
             Console.WriteLine($"Confirmed balance: {balanceInfo.Confirmed}"); // 0
             Console.WriteLine($"Unconfirmed balance: {balanceInfo.Unconfirmed}"); // 0,05474889
 
             // Get history of an address
-            AddressHistory history = httpMonitor.GetAddressHistory("1ENCTCkqoJqy2XZ2m2Dy1bRax7hsSnC5Fc");
+            var history = httpMonitor.GetAddressHistory("1ENCTCkqoJqy2XZ2m2Dy1bRax7hsSnC5Fc");
 
             Console.WriteLine("Number of transactions: " + history.Records.Count);
 
             // Exercise: are all transaction confirmed?
             var allTransactionsConfirmed = true;
-            foreach (AddressHistoryRecord record in history.Records)
+            foreach (var record in history.Records)
             {
                 Console.WriteLine(record.TransactionId + " : " + record.Amount);
                 allTransactionsConfirmed = allTransactionsConfirmed && record.Confirmed;
@@ -135,11 +135,11 @@ namespace Tutorials
             // Exercise: get the balance of the address
             Console.WriteLine("Total received - Total spent = Balance");
             Console.WriteLine(history.TotalReceived + " - " + history.TotalSpent + " = " +
-                                (history.TotalReceived - history.TotalSpent));
+                              (history.TotalReceived - history.TotalSpent));
 
             // Get some data from the transaction
-            TransactionInfo transactionInfo1 = httpMonitor.GetTransactionInfo(history.Records.First().TransactionId);
-            
+            var transactionInfo1 = httpMonitor.GetTransactionInfo(history.Records.First().TransactionId);
+
             Console.WriteLine("txid: " + transactionInfo1.Id);
             Console.WriteLine("Network: " + transactionInfo1.Network);
             Console.WriteLine("Confirmed: " + transactionInfo1.Confirmed);
@@ -162,11 +162,11 @@ namespace Tutorials
             // It should not be a concern for a Bitcoin wallet that purely handles money, if a transaction output or input has not been added
             // that means it has some other purpose, a wallet API can dismiss it
             // This tx is exotic (has OP_RETURN)
-            TransactionInfo transactionInfo2 =
+            var transactionInfo2 =
                 httpMonitor.GetTransactionInfo("8bae12b5f4c088d940733dcd1455efc6a3a69cf9340e17a981286d3778615684");
             Console.WriteLine(transactionInfo2.Id);
             Console.WriteLine("There are exotic inputs or outputs, so not all of them have been added successfully: "
-                                + Environment.NewLine + !transactionInfo2.AllInOutsAdded);
+                              + Environment.NewLine + !transactionInfo2.AllInOutsAdded);
         }
 
         private static void Part2Lesson2()
@@ -200,6 +200,10 @@ namespace Tutorials
 
             var safeMonitor = new HttpSafeMonitor(safe, addressCount: 1002);
 
+            Console.WriteLine(safeMonitor.Safe.GetAddress(0));
+            Console.WriteLine(safeMonitor.Safe.GetAddress(10));
+            Console.WriteLine(safeMonitor.Safe.GetAddress(999));
+
             // Report initialization progress
             safeMonitor.InitializationStateChanged += delegate(object sender, EventArgs args)
             {
@@ -217,10 +221,6 @@ namespace Tutorials
                 Thread.Sleep(100);
 
             #endregion
-
-            Console.WriteLine(safeMonitor.Safe.GetAddress(0));
-            Console.WriteLine(safeMonitor.Safe.GetAddress(10));
-            Console.WriteLine(safeMonitor.Safe.GetAddress(999));
 
             var safeBalanceInfo = safeMonitor.SafeBalanceInfo;
             Console.WriteLine($"Number of monitored addresses: {safeBalanceInfo.MonitoredAddressCount}");
@@ -242,7 +242,7 @@ namespace Tutorials
                 Console.WriteLine(record.Address + " " + record.Amount);
             }
 
-            #region Listening
+            #region ListeningToChanges
 
             safeMonitor.BalanceChanged += delegate(object sender, EventArgs args)
             {

@@ -27,7 +27,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
         {
             AssertNetwork(safe.Network);
             AddressCount = addressCount;
-            Safe = new HttpSafe(safe, addressCount, this);
+            Safe = new HttpSafe(this);
 
             _qBitNinjaWalletClient = Client.GetWalletClient(QBitNinjaWalletName);
             _qBitNinjaWalletClient.CreateIfNotExists().Wait();
@@ -104,19 +104,6 @@ namespace HiddenBitcoin.DataClasses.Monitoring
                 // Let's just simply add the addresscount so in case we have the same safe, but different
                 // sizes it should be in an other wallet
                 return address + AddressCount;
-            }
-        }
-
-        public List<string> MonitoredAddresses
-        {
-            get
-            {
-                var monitoredAddresses = new List<string>();
-                for (var i = 0; i < AddressCount; i++)
-                {
-                    monitoredAddresses.Add(Safe.GetAddress(i));
-                }
-                return monitoredAddresses;
             }
         }
 
@@ -325,7 +312,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
                 addressBalanceInfos.Add(new AddressBalanceInfo(address, unconfirmed, confirmed));
             }
 
-            addressBalanceInfos.AddRange(from address in MonitoredAddresses
+            addressBalanceInfos.AddRange(from address in Safe.Addresses
                 where !uniqueAddresses.Contains(address)
                 select new AddressBalanceInfo(address, 0m, 0m));
 
@@ -353,7 +340,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
                 address = null;
                 return false;
             }
-            return MonitoredAddresses.Contains(address);
+            return Safe.Addresses.Contains(address);
         }
 
         private void AssertState()
@@ -365,72 +352,6 @@ namespace HiddenBitcoin.DataClasses.Monitoring
         protected virtual void OnBalanceChanged()
         {
             BalanceChanged?.Invoke(this, EventArgs.Empty);
-        }
-    }
-
-    public class HttpSafe : Safe
-    {
-        public HttpSafe(Safe safe, int addressCount, HttpSafeMonitor httpSafeMonitor) : base(safe)
-        {
-            AddressCount = addressCount;
-            HttpSafeMonitor = httpSafeMonitor;
-        }
-
-        public int AddressCount { get; }
-        public HttpSafeMonitor HttpSafeMonitor { get; }
-
-        public List<string> UnusedAddresses
-        {
-            get
-            {
-                var unusedAddresses = HttpSafeMonitor.MonitoredAddresses.ToList();
-                foreach (var addressHistoryRecord in HttpSafeMonitor.SafeHistory.Records)
-                {
-                    unusedAddresses.Remove(addressHistoryRecord.Address);
-                }
-
-                if (unusedAddresses.Count == 0)
-                    throw new ArgumentException("Every address of HttpSafe has been used.");
-
-                return unusedAddresses;
-            }
-        }
-
-        public List<string> NotEmptyAddresses
-            => (from addressBalanceInfo in HttpSafeMonitor.SafeBalanceInfo.AddressBalances
-                where addressBalanceInfo.Balance > 0
-                select addressBalanceInfo.Address).ToList();
-
-        public override string GetAddress(int index)
-        {
-            AssertAddressCount(index);
-            return base.GetAddress(index);
-        }
-
-        public override string GetPrivateKey(int index)
-        {
-            AssertAddressCount(index);
-            return base.GetPrivateKey(index);
-        }
-
-        public string GetPrivateKey(string address)
-        {
-            if (!HttpSafeMonitor.MonitoredAddresses.Contains(address))
-                throw new Exception("No private key of address in HttpSafe");
-            return GetPrivateKey(HttpSafeMonitor.MonitoredAddresses.IndexOf(address));
-        }
-
-        public override PrivateKeyAddressPair GetPrivateKeyAddressPair(int index)
-        {
-            AssertAddressCount(index);
-            return base.GetPrivateKeyAddressPair(index);
-        }
-
-        private void AssertAddressCount(int index)
-        {
-            if (index >= AddressCount)
-                throw new IndexOutOfRangeException(
-                    $"Value of index is {index}, it cannot be higher than {AddressCount - 1}");
         }
     }
 }

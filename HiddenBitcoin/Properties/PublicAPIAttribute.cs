@@ -7,6 +7,7 @@ namespace HiddenBitcoin.Properties
     ///     which should not be removed and so is treated as used.
     /// </summary>
     [MeansImplicitUse(ImplicitUseTargetFlags.WithMembers)]
+    // ReSharper disable once InconsistentNaming
     public sealed class PublicAPIAttribute : Attribute
     {
         public PublicAPIAttribute()

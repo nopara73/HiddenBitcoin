@@ -61,11 +61,16 @@
     <Compile Include="DataClasses\Balances\AddressBalanceInfo.cs" />
     <Compile Include="DataClasses\Histories\History.cs" />
     <Compile Include="DataClasses\Histories\SafeHistory.cs" />
-    <Compile Include="DataClasses\HttpSender.cs" />
+    <Compile Include="DataClasses\Interfaces\IAssertNetwork.cs" />
+    <Compile Include="DataClasses\KeyManagement\HttpSafe.cs" />
+    <Compile Include="DataClasses\KeyManagement\LimitedSafe.cs" />
     <Compile Include="DataClasses\Monitoring\HttpSafeMonitor.cs" />
     <Compile Include="DataClasses\Monitoring\Monitor.cs" />
     <Compile Include="DataClasses\Network.cs" />
     <Compile Include="DataClasses\PrivateKeyAddressPair.cs" />
+    <Compile Include="DataClasses\Sending\HttpSafeSender.cs" />
+    <Compile Include="DataClasses\Sending\HttpSender.cs" />
+    <Compile Include="DataClasses\Sending\Sender.cs" />
     <Compile Include="DataClasses\State.cs" />
     <Compile Include="DataClasses\TransactionInfo.cs" />
     <Compile Include="DataClasses\InOutInfo.cs" />

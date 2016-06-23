@@ -1,3 +1,4 @@
+// ReSharper disable InconsistentNaming
 namespace HiddenBitcoin.Properties
 {
     /// <summary>

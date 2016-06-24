@@ -22,12 +22,14 @@ namespace HiddenBitcoin.DataClasses.Monitoring
         private SafeBalanceInfo _safeBalanceInfo;
         private SafeHistory _safeHistory;
         private decimal _unconfirmedBalance;
+        internal Safe BaseSafe;
 
         public HttpSafeMonitor(Safe safe, int addressCount) : base(safe.Network)
         {
             AssertNetwork(safe.Network);
             AddressCount = addressCount;
-            Safe = new HttpSafe(safe, this);
+            BaseSafe = safe;
+            Safe = new HttpSafe(this);
 
             _qBitNinjaWalletClient = Client.GetWalletClient(QBitNinjaWalletName);
             _qBitNinjaWalletClient.CreateIfNotExists().Wait();

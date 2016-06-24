@@ -7,7 +7,7 @@ namespace HiddenBitcoin.DataClasses.KeyManagement
 {
     public class HttpSafe : LimitedSafe
     {
-        public HttpSafe(HttpSafeMonitor httpSafeMonitor) : base(httpSafeMonitor.Safe, httpSafeMonitor.AddressCount)
+        public HttpSafe(Safe safe, HttpSafeMonitor httpSafeMonitor) : base(safe, httpSafeMonitor.AddressCount)
         {
             HttpSafeMonitor = httpSafeMonitor;
         }

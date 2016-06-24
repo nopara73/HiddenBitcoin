@@ -27,7 +27,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
         {
             AssertNetwork(safe.Network);
             AddressCount = addressCount;
-            Safe = new HttpSafe(this);
+            Safe = new HttpSafe(safe, this);
 
             _qBitNinjaWalletClient = Client.GetWalletClient(QBitNinjaWalletName);
             _qBitNinjaWalletClient.CreateIfNotExists().Wait();

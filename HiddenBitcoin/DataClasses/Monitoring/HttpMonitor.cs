@@ -16,13 +16,15 @@ namespace HiddenBitcoin.DataClasses.Monitoring
 
         public override AddressBalanceInfo GetAddressBalanceInfo(string address)
         {
-            var nBitcoinAddress = new BitcoinPubKeyAddress(address);
-            AssertNetwork(nBitcoinAddress.Network);
+            AssertNetwork(new BitcoinPubKeyAddress(address).Network);
 
-            var balanceSummary = Client.GetBalanceSummary(nBitcoinAddress).Result;
+            var confirmedBalance = 0m;
+            var unconfirmedBalance = 0m;
 
-            var confirmedBalance = balanceSummary.Confirmed.Amount.ToDecimal(MoneyUnit.BTC);
-            var unconfirmedBalance = balanceSummary.UnConfirmed.Amount.ToDecimal(MoneyUnit.BTC);
+            foreach (var record in GetAddressHistory(address).Records)
+                if (record.Confirmed)
+                    confirmedBalance += record.Amount;
+                else unconfirmedBalance += record.Amount;
 
             return new AddressBalanceInfo(address, unconfirmedBalance, confirmedBalance);
         }

@@ -8,11 +8,9 @@ namespace HiddenBitcoin.DataClasses.Histories
     {
         protected History(IEnumerable<AddressHistoryRecord> records)
         {
-            Records = new List<AddressHistoryRecord>();
-            foreach (var record in records)
-            {
-                Records.Add(record);
-            }
+            Records = records.ToList()
+                .OrderBy(x => x.Confirmed)
+                .ThenByDescending(x => x.DateTime).ToList();
         }
 
         public List<AddressHistoryRecord> Records { get; }

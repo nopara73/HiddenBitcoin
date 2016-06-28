@@ -304,6 +304,12 @@ namespace HiddenBitcoin.DataClasses.Monitoring
             var addressHistories =
                 addressOperationsDict.Select(pair => new AddressHistory(pair.Key, pair.Value)).ToList();
 
+            foreach (var address in Safe.Addresses)
+            {
+                if(!addressHistories.Select(x => x.Address).Contains(address))
+                    addressHistories.Add(new AddressHistory(address, new List<BalanceOperation>()));
+            }
+
             var addressBalanceInfoList = new List<AddressBalanceInfo>();
             foreach (var addressHistory in addressHistories)
             {

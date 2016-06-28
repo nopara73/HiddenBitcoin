@@ -361,12 +361,7 @@ namespace Tutorials
 
             #region InitializeHttpSafeMonitor
 
-            var safeMonitor = new HttpSafeMonitor(safe, addressCount: 1000);
-
-            Console.WriteLine(safeMonitor.Safe.GetAddress(0));
-            Console.WriteLine(safeMonitor.Safe.GetAddress(10));
-            Console.WriteLine(safeMonitor.Safe.GetAddress(999));
-            Console.WriteLine(safeMonitor.Safe.GetAddress(2));
+            var safeMonitor = new HttpSafeMonitor(safe, addressCount: 100);
 
 
             // Report initialization progress

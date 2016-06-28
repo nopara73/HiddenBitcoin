@@ -21,7 +21,6 @@ namespace HiddenBitcoin.DataClasses.Monitoring
         private State _initializationState;
         private SafeBalanceInfo _safeBalanceInfo;
         private SafeHistory _safeHistory;
-        private decimal _unconfirmedBalance;
         internal Safe BaseSafe;
 
         public HttpSafeMonitor(Safe safe, int addressCount) : base(safe.Network)
@@ -47,8 +46,26 @@ namespace HiddenBitcoin.DataClasses.Monitoring
             }
             private set
             {
+                var changeHappened = false;
+                if (_safeHistory != null)
+                {
+                    if (_safeHistory.Records.Count != value.Records.Count)
+                        changeHappened = true;
+                    else
+                    {
+                        for (var i = 0; i < _safeHistory.Records.Count; i++)
+                        {
+                            if (_safeHistory.Records[i].Confirmed != value.Records[i].Confirmed)
+                                changeHappened = true;
+                            if (_safeHistory.Records[i].TransactionId != value.Records[i].TransactionId)
+                                changeHappened = true; // Malleability check
+                        }
+                    }
+                }
+                
                 _safeHistory = value;
                 AdjustState(AddressCount);
+                if (changeHappened) OnBalanceChanged();
             }
         }
 
@@ -113,17 +130,6 @@ namespace HiddenBitcoin.DataClasses.Monitoring
             }
         }
 
-        private decimal UnconfirmedBalance
-        {
-            set
-            {
-                if (value == _unconfirmedBalance)
-                    return;
-                _unconfirmedBalance = value;
-                OnBalanceChanged();
-            }
-        }
-
         public SafeBalanceInfo SafeBalanceInfo
         {
             get
@@ -135,7 +141,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
             set
             {
                 _safeBalanceInfo = value;
-                UnconfirmedBalance = value.Unconfirmed;
+
                 AdjustState(AddressCount);
             }
         }
@@ -265,7 +271,8 @@ namespace HiddenBitcoin.DataClasses.Monitoring
                     string address;
                     if (!SafeContainsCoin(out address, coin)) continue;
 
-                    var amount = operation.Amount.ToDecimal(MoneyUnit.BTC);
+                    var amount = ((Money)coin.Amount).ToDecimal(MoneyUnit.BTC);
+
                     receivedAddressAmountPairs.Add(operation.Confirmations == 0
                         ? new Tuple<string, decimal, decimal>(address, amount, 0m)
                         : new Tuple<string, decimal, decimal>(address, 0m, amount));
@@ -278,7 +285,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
                     string address;
                     if (!SafeContainsCoin(out address, coin)) continue;
 
-                    var amount = operation.Amount.ToDecimal(MoneyUnit.BTC);
+                    var amount = ((Money)coin.Amount).ToDecimal(MoneyUnit.BTC);
                     spentAddressAmountPairs.Add(operation.Confirmations == 0
                         ? new Tuple<string, decimal, decimal>(address, amount, 0m)
                         : new Tuple<string, decimal, decimal>(address, 0m, amount));
@@ -297,42 +304,24 @@ namespace HiddenBitcoin.DataClasses.Monitoring
             var addressHistories =
                 addressOperationsDict.Select(pair => new AddressHistory(pair.Key, pair.Value)).ToList();
 
-
-            SafeHistory = new SafeHistory(Safe, addressHistories);
-
-            var uniqueAddresses = new HashSet<string>();
-            foreach (var pair in receivedAddressAmountPairs)
-                uniqueAddresses.Add(pair.Item1);
-            foreach (var pair in spentAddressAmountPairs)
-                uniqueAddresses.Add(pair.Item1);
-
-            var addressBalanceInfos = new List<AddressBalanceInfo>();
-
-            foreach (var address in uniqueAddresses)
+            var addressBalanceInfoList = new List<AddressBalanceInfo>();
+            foreach (var addressHistory in addressHistories)
             {
                 var unconfirmed = 0m;
                 var confirmed = 0m;
-                foreach (var pair in spentAddressAmountPairs)
+                foreach (var record in addressHistory.Records)
                 {
-                    if (pair.Item1 != address) continue;
-                    unconfirmed -= pair.Item2;
-                    confirmed -= pair.Item3;
-                }
-                foreach (var pair in receivedAddressAmountPairs)
-                {
-                    if (pair.Item1 != address) continue;
-                    unconfirmed += pair.Item2;
-                    confirmed += pair.Item3;
+                    if (record.Confirmed)
+                        confirmed += record.Amount;
+                    else unconfirmed += record.Amount;
                 }
 
-                addressBalanceInfos.Add(new AddressBalanceInfo(address, unconfirmed, confirmed));
+                var addressBalanceInfo = new AddressBalanceInfo(addressHistory.Address, unconfirmed, confirmed);
+                addressBalanceInfoList.Add(addressBalanceInfo);
             }
 
-            addressBalanceInfos.AddRange(from address in Safe.Addresses
-                where !uniqueAddresses.Contains(address)
-                select new AddressBalanceInfo(address, 0m, 0m));
-
-            SafeBalanceInfo = new SafeBalanceInfo(Safe, addressBalanceInfos);
+            SafeBalanceInfo = new SafeBalanceInfo(Safe, addressBalanceInfoList);
+            SafeHistory = new SafeHistory(Safe, addressHistories);
         }
 
         public SafeHistory GetSafeHistory()

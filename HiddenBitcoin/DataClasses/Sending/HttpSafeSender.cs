@@ -14,12 +14,12 @@ namespace HiddenBitcoin.DataClasses.Sending
 
         public HttpSafe Safe { get; }
 
-        public TransactionInfo Send(List<AddressAmountPair> to, FeeType feeType = FeeType.Fastest,
+        public TransactionInfo CreateTransaction(List<AddressAmountPair> to, FeeType feeType = FeeType.Fastest,
             string message = "")
         {
             var notEmptyPrivateKeys = Safe.NotEmptyAddresses.Select(Safe.GetPrivateKey).ToList();
 
-            return Send(
+            return CreateTransaction(
                 notEmptyPrivateKeys,
                 to,
                 feeType,
@@ -27,12 +27,12 @@ namespace HiddenBitcoin.DataClasses.Sending
                 message);
         }
 
-        public TransactionInfo SendAll(string toAddress, FeeType feeType = FeeType.Fastest,
+        public TransactionInfo CreateSendAllTransaction(string toAddress, FeeType feeType = FeeType.Fastest,
             string message = "")
         {
             var notEmptyPrivateKeys = Safe.NotEmptyAddresses.Select(Safe.GetPrivateKey).ToList();
 
-            return SendAll(
+            return CreateSendAllTransaction(
                 notEmptyPrivateKeys,
                 toAddress,
                 feeType,

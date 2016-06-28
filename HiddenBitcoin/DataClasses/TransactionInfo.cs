@@ -12,17 +12,42 @@ namespace HiddenBitcoin.DataClasses
         private readonly List<InOutInfo> _outputs;
         private readonly List<ICoin> _receivedCoins;
         private readonly List<ICoin> _spentCoins;
-        private readonly GetTransactionResponse _transactionResponse;
 
         internal TransactionInfo(GetTransactionResponse transactionResponse, Network network)
         {
-            _transactionResponse = transactionResponse;
-
             _network = Convert.ToNBitcoinNetwork(network);
 
-            _spentCoins = _transactionResponse.SpentCoins;
-            _receivedCoins = _transactionResponse.ReceivedCoins;
+            _spentCoins = transactionResponse.SpentCoins;
+            _receivedCoins = transactionResponse.ReceivedCoins;
 
+            Id = transactionResponse.TransactionId.ToString();
+            Confirmed = transactionResponse.Block != null;
+            Fee = transactionResponse.Fees.ToDecimal(MoneyUnit.BTC);
+            
+            AllInOutsAdded =
+                FillInOutInfoList(out _inputs, _spentCoins)
+                &&
+                FillInOutInfoList(out _outputs, _receivedCoins);
+        }
+
+        internal TransactionInfo(IEnumerable<Coin> spentCoins, IEnumerable<Coin> receivedCoins, Network network, string transactionId, bool confirmed, decimal fee)
+        {
+            _network = Convert.ToNBitcoinNetwork(network);
+
+            _spentCoins = new List<ICoin>();
+            _receivedCoins = new List<ICoin>();
+            foreach (var coin in spentCoins)
+            {
+                _spentCoins.Add(coin);
+            }
+            foreach (var coin in receivedCoins)
+            {
+                _receivedCoins.Add(coin);
+            }
+
+            Id = transactionId;
+            Confirmed = confirmed;
+            Fee = fee;
 
             AllInOutsAdded =
                 FillInOutInfoList(out _inputs, _spentCoins)
@@ -33,9 +58,9 @@ namespace HiddenBitcoin.DataClasses
         public List<InOutInfo> Inputs => _inputs;
         public List<InOutInfo> Outputs => _outputs;
         public bool AllInOutsAdded { get; private set; }
-        public string Id => _transactionResponse.TransactionId.ToString();
-        public bool Confirmed => _transactionResponse.Block != null;
-        public decimal Fee => _transactionResponse.Fees.ToDecimal(MoneyUnit.BTC);
+        public string Id { get; }
+        public bool Confirmed { get; }
+        public decimal Fee { get; }
         public Network Network => Convert.ToHiddenBitcoinNetwork(_network);
         public decimal TotalInputAmount => SumAmounts(_spentCoins);
         public decimal TotalOutputAmount => SumAmounts(_receivedCoins);

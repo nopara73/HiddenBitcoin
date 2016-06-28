@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using HiddenBitcoin.DataClasses.Interfaces;
+using NBitcoin;
 
 namespace HiddenBitcoin.DataClasses.Sending
 {
     public abstract class Sender : IAssertNetwork
     {
+        protected List<Transaction> CreatedTransactions = new List<Transaction>();
+
         // ReSharper disable once InconsistentNaming
         protected readonly NBitcoin.Network _Network;
 
@@ -28,7 +31,7 @@ namespace HiddenBitcoin.DataClasses.Sending
                 throw new Exception("Wrong network");
         }
 
-        public abstract TransactionInfo SendAll(List<string> fromPrivateKeys, string toAddress,
+        public abstract TransactionInfo CreateSendAllTransaction(List<string> fromPrivateKeys, string toAddress,
             FeeType feeType = FeeType.Fastest, string message = "");
 
         /// <summary>
@@ -40,7 +43,9 @@ namespace HiddenBitcoin.DataClasses.Sending
         /// <param name="message"></param>
         /// <param name="sendAll">If true changeAddress and amounts of to does not matter, we send them all</param>
         /// <returns></returns>
-        public abstract TransactionInfo Send(List<string> fromPrivateKeys, List<AddressAmountPair> to,
+        public abstract TransactionInfo CreateTransaction(List<string> fromPrivateKeys, List<AddressAmountPair> to,
             FeeType feeType = FeeType.Fastest, string changeAddress = "", string message = "", bool sendAll = false);
+
+        public abstract void Send(string transactionId);
     }
 }

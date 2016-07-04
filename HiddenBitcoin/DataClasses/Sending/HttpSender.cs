@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using NBitcoin;
 using QBitNinja.Client;
-using QBitNinja.Client.Models;
 
 namespace HiddenBitcoin.DataClasses.Sending
 {
@@ -17,89 +16,25 @@ namespace HiddenBitcoin.DataClasses.Sending
             Client = new QBitNinjaClient(_Network);
         }
 
-        public override TransactionInfo CreateSendAllTransaction(List<string> fromPrivateKeys, string toAddress,
-            FeeType feeType = FeeType.Fastest, string message = "")
-        {
-            var addressAmountPair = new AddressAmountPair
-            {
-                Address = toAddress,
-                Amount = 0 // doesn't matter, we send all
-            };
-
-            return CreateTransaction(
-                fromPrivateKeys,
-                new List<AddressAmountPair> {addressAmountPair},
-                feeType,
-                message: message,
-                sendAll: true
-                );
-        }
-
         public override TransactionInfo CreateTransaction(List<string> fromPrivateKeys, List<AddressAmountPair> to,
-            FeeType feeType = FeeType.Fastest, string changeAddress = "", string message = "", bool sendAll = false)
+            FeeType feeType = FeeType.Fastest, string changeAddress = "", string message = "", bool spendAll = false, bool spendUnconfirmed = false)
         {
-            // Set privatekeys
-            var fromKeys = new List<Key>();
-            var fromExtKeys = new List<ExtKey>();
+            // Set secrets
+            var secrets = fromPrivateKeys.Select(Convert.ToISecret).ToList();
             
-            foreach (var privatekey in fromPrivateKeys)
-            {
-                try
-                {
-                    var bitcoinSecret = new BitcoinSecret(privatekey);
-                    AssertNetwork(bitcoinSecret.Network);
-                    fromKeys.Add(bitcoinSecret.PrivateKey);
-                }
-                catch
-                {
-                    try
-                    {
-                        var bitcoinExtKey = new BitcoinExtKey(privatekey);
-                        AssertNetwork(bitcoinExtKey.Network);
-                        fromExtKeys.Add(bitcoinExtKey.ExtKey);
-                    }
-                    catch
-                    {
-                        throw  new Exception($"Private key in wrong format: {privatekey}");
-                    }
-                }
-            }
-
-            var secrets = fromExtKeys.Cast<ISecret>().ToList();
-            secrets.AddRange(fromKeys.Cast<ISecret>());
-
             // Set changeScriptPubKey
-            if (sendAll)
-                changeAddress = "";
-            Script changeScriptPubKey;
-            if (changeAddress != "")
-            {
-                var changeBitcoinAddress = BitcoinAddress.Create(changeAddress);
-                AssertNetwork(changeBitcoinAddress.Network);
-                changeScriptPubKey = changeBitcoinAddress.ScriptPubKey;
-            }
-            else
-                changeScriptPubKey = secrets.First().PrivateKey.ScriptPubKey;
+            var changeScriptPubKey = GetChangeScriptPubKey(ref changeAddress, spendAll, secrets);
 
-            // Gather coins can be spend
-            var unspentCoins = new List<Coin>();
-            foreach (var key in secrets)
-            {
-                var destination = key.PrivateKey.ScriptPubKey.GetDestinationAddress(_Network);
-                BalanceModel balanceModel = Client.GetBalance(destination, true).Result;
-                foreach (var operation in balanceModel.Operations)
-                {
-                    foreach (var coin in operation.ReceivedCoins)
-                        unspentCoins.Add(coin as Coin);
-                }
-            }
+            // Gather coins can be spended
+            var unspentCoins = GetUnspentCoins(secrets);
 
-            //Gather coins to spend
-            TransactionBuilder builder = new TransactionBuilder();
-            Transaction transaction = new Transaction();
+            // Build the transaction
+            var builder = new TransactionBuilder();
+            var transaction = new Transaction();
             var coinsToSpend = new List<Coin>();
             var fee = FeeApi.GetRecommendedFee(100, FeeType.Hour);
-            if (!sendAll)
+
+            if (!spendAll)
             {
                 var orderedUnspentCoins = unspentCoins.OrderByDescending(x => x.Amount.ToDecimal(MoneyUnit.BTC));
 
@@ -124,7 +59,7 @@ namespace HiddenBitcoin.DataClasses.Sending
                     if (coinsToSpend.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC)) <= transactionCost) continue;
                     // if it does reach build the real transaction with the new fee
                     BuildTransaction(to, secrets, changeScriptPubKey, coinsToSpend, fee, out builder, out transaction, message);
-                    
+
                     haveEnough = true;
                     break;
                 }
@@ -153,6 +88,40 @@ namespace HiddenBitcoin.DataClasses.Sending
             if (!builder.Verify(transaction)) throw new Exception("Wrong transaction"); // todo temporarily exception
             CreatedTransactions.Add(transaction);
             return new TransactionInfo(coinsToSpend, transaction.Outputs.AsCoins(), Network, transaction.GetHash().ToString(), false, fee);
+        }
+
+        private Script GetChangeScriptPubKey(ref string changeAddress, bool spendAll, IEnumerable<ISecret> secrets)
+        {
+            if (spendAll)
+                changeAddress = "";
+            Script changeScriptPubKey;
+            if (changeAddress == "")
+                changeScriptPubKey = secrets.First().PrivateKey.ScriptPubKey;
+            else
+            {
+                var changeBitcoinAddress = BitcoinAddress.Create(changeAddress);
+                AssertNetwork(changeBitcoinAddress.Network);
+                changeScriptPubKey = changeBitcoinAddress.ScriptPubKey;
+            }
+
+            return changeScriptPubKey;
+        }
+
+        private List<Coin> GetUnspentCoins(IEnumerable<ISecret> secrets)
+        {
+            var unspentCoins = new List<Coin>();
+            foreach (var secret in secrets)
+            {
+                var destination = secret.PrivateKey.ScriptPubKey.GetDestinationAddress(_Network);
+                
+                var balanceModel = Client.GetBalance(destination, unspentOnly: true).Result;
+                foreach (var operation in balanceModel.Operations)
+                {
+                    unspentCoins.AddRange(operation.ReceivedCoins.Select(coin => coin as Coin));
+                }
+            }
+
+            return unspentCoins;
         }
 
         private void BuildSendAllTransaction(List<AddressAmountPair> to, string message, List<ISecret> secrets, List<Coin> coinsToSpend, decimal fee, decimal amountToReceive, out TransactionBuilder builder, out Transaction transaction)

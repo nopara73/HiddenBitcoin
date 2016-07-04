@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using HiddenBitcoin.DataClasses.Balances;
 using HiddenBitcoin.DataClasses.Histories;
 using HiddenBitcoin.DataClasses.KeyManagement;
+using HiddenBitcoin.DataClasses.States;
 using NBitcoin;
 using QBitNinja.Client;
 using QBitNinja.Client.Models;

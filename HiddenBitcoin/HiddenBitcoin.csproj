@@ -72,7 +72,8 @@
     <Compile Include="DataClasses\Sending\HttpSafeSender.cs" />
     <Compile Include="DataClasses\Sending\HttpSender.cs" />
     <Compile Include="DataClasses\Sending\Sender.cs" />
-    <Compile Include="DataClasses\State.cs" />
+    <Compile Include="DataClasses\States\State.cs" />
+    <Compile Include="DataClasses\States\TransactionCreationState.cs" />
     <Compile Include="DataClasses\TransactionInfo.cs" />
     <Compile Include="DataClasses\InOutInfo.cs" />
     <Compile Include="DataClasses\KeyManagement\WalletFileSerializer.cs" />

@@ -31,8 +31,24 @@ namespace HiddenBitcoin.DataClasses.Sending
                 throw new Exception("Wrong network");
         }
 
-        public abstract TransactionInfo CreateSendAllTransaction(List<string> fromPrivateKeys, string toAddress,
-            FeeType feeType = FeeType.Fastest, string message = "");
+        public TransactionInfo CreateSpendAllTransaction(List<string> fromPrivateKeys, string toAddress,
+            FeeType feeType = FeeType.Fastest, string message = "", bool spendUnconfirmed = false)
+        {
+            var addressAmountPair = new AddressAmountPair
+            {
+                Address = toAddress,
+                Amount = 0 // doesn't matter, we send all
+            };
+
+            return CreateTransaction(
+                fromPrivateKeys,
+                new List<AddressAmountPair> { addressAmountPair },
+                feeType,
+                message: message,
+                spendAll: true,
+                spendUnconfirmed: spendUnconfirmed 
+                );
+        }
 
         /// <summary>
         /// </summary>
@@ -41,10 +57,11 @@ namespace HiddenBitcoin.DataClasses.Sending
         /// <param name="feeType"></param>
         /// <param name="changeAddress"></param>
         /// <param name="message"></param>
-        /// <param name="sendAll">If true changeAddress and amounts of to does not matter, we send them all</param>
+        /// <param name="spendAll">If true changeAddress and amounts of to does not matter, we send them all</param>
+        /// <param name="spendUnconfirmed"></param>
         /// <returns></returns>
         public abstract TransactionInfo CreateTransaction(List<string> fromPrivateKeys, List<AddressAmountPair> to,
-            FeeType feeType = FeeType.Fastest, string changeAddress = "", string message = "", bool sendAll = false);
+            FeeType feeType = FeeType.Fastest, string changeAddress = "", string message = "", bool spendAll = false, bool spendUnconfirmed = false);
 
         public abstract void Send(string transactionId);
     }

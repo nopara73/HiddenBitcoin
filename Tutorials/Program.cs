@@ -12,6 +12,8 @@ using HiddenBitcoin.DataClasses.Histories;
 using HiddenBitcoin.DataClasses.KeyManagement;
 using HiddenBitcoin.DataClasses.Monitoring;
 using HiddenBitcoin.DataClasses.Sending;
+using HiddenBitcoin.DataClasses.States;
+using static System.Console;
 
 namespace Tutorials
 {
@@ -21,12 +23,13 @@ namespace Tutorials
         {
             //Part1(); // Storing keys
             //Part2Lesson1(); // Monitoring keys using HTTP
-            Part2Lesson2(); // Monitoring safes using HTTP
+            //Part2Lesson2(); // Monitoring safes using HTTP
 
             //TemporarilyTestHttpSafeMonitor();
             //TemporarilyTestHttpMonitor();
+            TemporarilySendTest();
 
-            Console.ReadLine();
+            ReadLine();
         }
 
         private static void TemporarilyTestHttpMonitor()
@@ -40,22 +43,22 @@ namespace Tutorials
             var bal = monitor.GetAddressBalanceInfo(address);
             var his = monitor.GetAddressHistory(address);
 
-            Console.WriteLine($"Balance: {bal.Balance}");
-            Console.WriteLine($"Confirmed balance: {bal.Confirmed}");
-            Console.WriteLine($"Unconfirmed balance: {bal.Unconfirmed}");
-            Console.WriteLine($"TotalReceived: {his.TotalReceived}");
-            Console.WriteLine($"TotalSpent: {his.TotalSpent}");
-            Console.WriteLine($"TotalReceived - TotalSpent: {his.TotalReceived - his.TotalSpent}");
-            Console.WriteLine($"TotalReceived - TotalSpent == Balance: {his.TotalReceived - his.TotalSpent == bal.Balance}");
-            Console.WriteLine();
-            Console.WriteLine("RECORDS:");
+            WriteLine($"Balance: {bal.Balance}");
+            WriteLine($"Confirmed balance: {bal.Confirmed}");
+            WriteLine($"Unconfirmed balance: {bal.Unconfirmed}");
+            WriteLine($"TotalReceived: {his.TotalReceived}");
+            WriteLine($"TotalSpent: {his.TotalSpent}");
+            WriteLine($"TotalReceived - TotalSpent: {his.TotalReceived - his.TotalSpent}");
+            WriteLine($"TotalReceived - TotalSpent == Balance: {his.TotalReceived - his.TotalSpent == bal.Balance}");
+            WriteLine();
+            WriteLine("RECORDS:");
 
             foreach (var record in his.Records)
             {
-                Console.WriteLine();
-                Console.WriteLine($"DateTime: {record.DateTime}");
-                Console.WriteLine($"Amount: {record.Amount}");
-                Console.WriteLine($"Confirmed: {record.Confirmed}");
+                WriteLine();
+                WriteLine($"DateTime: {record.DateTime}");
+                WriteLine($"Amount: {record.Amount}");
+                WriteLine($"Confirmed: {record.Confirmed}");
             }
 
             //var spender = new HttpSender(Network.TestNet);
@@ -100,7 +103,7 @@ namespace Tutorials
                 safe = Safe.Create(out mnemonic, "password", walletFilePath, network);
             }
 
-            Console.WriteLine("Safe has been set up");
+            WriteLine("Safe has been set up");
             #endregion
 
             #region InitializeHttpSafeMonitor
@@ -111,65 +114,65 @@ namespace Tutorials
             safeMonitor.InitializationStateChanged += delegate (object sender, EventArgs args)
             {
                 var monitor = (HttpSafeMonitor)sender;
-                Console.WriteLine($"Initialization state: {monitor.InitializationState}");
+                WriteLine($"Initialization state: {monitor.InitializationState}");
             };
             safeMonitor.InitializationProgressPercentChanged += delegate (object sender, EventArgs args)
             {
                 var monitor = (HttpSafeMonitor)sender;
-                Console.WriteLine($"Initializing: {monitor.InitializationProgressPercent}%");
+                WriteLine($"Initializing: {monitor.InitializationProgressPercent}%");
             };
 
             // Let's wait until initialized
             while (safeMonitor.InitializationState != State.Ready)
                 Thread.Sleep(100);
 
-            Console.WriteLine("SafeMonitor is ready to work with");
+            WriteLine("SafeMonitor is ready to work with");
             #endregion
             
             var bal = safeMonitor.SafeBalanceInfo;
             var his = safeMonitor.SafeHistory;
 
-            Console.WriteLine();
-            Console.WriteLine($"Balance: {bal.Balance}");
-            Console.WriteLine($"Confirmed balance: {bal.Confirmed}");
-            Console.WriteLine($"Unconfirmed balance: {bal.Unconfirmed}");
-            Console.WriteLine($"TotalReceived: {his.TotalReceived}");
-            Console.WriteLine($"TotalSpent: {his.TotalSpent}");
-            Console.WriteLine($"TotalReceived - TotalSpent: {his.TotalReceived - his.TotalSpent}");
-            Console.WriteLine($"TotalReceived - TotalSpent == Balance: {his.TotalReceived - his.TotalSpent == bal.Balance}");
-            Console.WriteLine();
-            Console.WriteLine("RECORDS:");
+            WriteLine();
+            WriteLine($"Balance: {bal.Balance}");
+            WriteLine($"Confirmed balance: {bal.Confirmed}");
+            WriteLine($"Unconfirmed balance: {bal.Unconfirmed}");
+            WriteLine($"TotalReceived: {his.TotalReceived}");
+            WriteLine($"TotalSpent: {his.TotalSpent}");
+            WriteLine($"TotalReceived - TotalSpent: {his.TotalReceived - his.TotalSpent}");
+            WriteLine($"TotalReceived - TotalSpent == Balance: {his.TotalReceived - his.TotalSpent == bal.Balance}");
+            WriteLine();
+            WriteLine("RECORDS:");
 
             foreach (var record in his.Records)
             {
-                Console.WriteLine();
-                Console.WriteLine($"DateTime: {record.DateTime}");
-                Console.WriteLine($"Amount: {record.Amount}");
-                Console.WriteLine($"Confirmed: {record.Confirmed}");
+                WriteLine();
+                WriteLine($"DateTime: {record.DateTime}");
+                WriteLine($"Amount: {record.Amount}");
+                WriteLine($"Confirmed: {record.Confirmed}");
             }
 
             safeMonitor.BalanceChanged += delegate (object sender, EventArgs args)
             {
                 var monitor = (HttpSafeMonitor)sender;
 
-                Console.WriteLine();
-                Console.WriteLine("Change happened");
-                Console.WriteLine($"Balance: {monitor.SafeBalanceInfo.Balance}");
-                Console.WriteLine($"Confirmed balance: {monitor.SafeBalanceInfo.Confirmed}");
-                Console.WriteLine($"Unconfirmed balance: {monitor.SafeBalanceInfo.Unconfirmed}");
-                Console.WriteLine($"TotalReceived: {monitor.SafeHistory.TotalReceived}");
-                Console.WriteLine($"TotalSpent: {monitor.SafeHistory.TotalSpent}");
-                Console.WriteLine($"TotalReceived - TotalSpent: {monitor.SafeHistory.TotalReceived - monitor.SafeHistory.TotalSpent}");
-                Console.WriteLine($"TotalReceived - TotalSpent == Balance: {monitor.SafeHistory.TotalReceived - monitor.SafeHistory.TotalSpent == monitor.SafeBalanceInfo.Balance}");
-                Console.WriteLine();
-                Console.WriteLine("Last record:");
+                WriteLine();
+                WriteLine("Change happened");
+                WriteLine($"Balance: {monitor.SafeBalanceInfo.Balance}");
+                WriteLine($"Confirmed balance: {monitor.SafeBalanceInfo.Confirmed}");
+                WriteLine($"Unconfirmed balance: {monitor.SafeBalanceInfo.Unconfirmed}");
+                WriteLine($"TotalReceived: {monitor.SafeHistory.TotalReceived}");
+                WriteLine($"TotalSpent: {monitor.SafeHistory.TotalSpent}");
+                WriteLine($"TotalReceived - TotalSpent: {monitor.SafeHistory.TotalReceived - monitor.SafeHistory.TotalSpent}");
+                WriteLine($"TotalReceived - TotalSpent == Balance: {monitor.SafeHistory.TotalReceived - monitor.SafeHistory.TotalSpent == monitor.SafeBalanceInfo.Balance}");
+                WriteLine();
+                WriteLine("Last record:");
                 var record = monitor.SafeHistory.Records.First();
-                Console.WriteLine($"DateTime: {record.DateTime}");
-                Console.WriteLine($"Amount: {record.Amount}");
-                Console.WriteLine($"Confirmed: {record.Confirmed}");
+                WriteLine($"DateTime: {record.DateTime}");
+                WriteLine($"Amount: {record.Amount}");
+                WriteLine($"Confirmed: {record.Confirmed}");
             };
-            Console.WriteLine();
-            Console.WriteLine("Subscribed to changes");
+            WriteLine();
+            WriteLine("Subscribed to changes");
 
             //var spender = new HttpSafeSender(safeMonitor.Safe);
             //var tx = spender.CreateTransaction(
@@ -177,8 +180,8 @@ namespace Tutorials
             //    {
             //        new AddressAmountPair
             //        {
-            //            //Address = safeMonitor.Safe.GetAddress(99), // internal address
-            //            Address = "n2eMqTT929pb1RDNuqEnxdaLau1rxy3efi", // outer address
+            //            Address = safeMonitor.Safe.GetAddress(99), // internal address
+            //            //Address = "n2eMqTT929pb1RDNuqEnxdaLau1rxy3efi", // outer address
             //            Amount = 1
             //        }
             //    });
@@ -186,6 +189,135 @@ namespace Tutorials
             //Console.WriteLine("Transaction created");
             //spender.Send(tx.Id);
             //Console.WriteLine("Transaction sent");
+        }
+
+        private static void TemporarilySendTest()
+        {
+            var network = Network.TestNet;
+            #region SetupSafe
+
+            string walletFilePath;
+            if (network == Network.MainNet)
+                walletFilePath = "MainNetHidden2.wallet";
+            else
+                walletFilePath = "TestNetHidden2.wallet";
+
+            Safe safe;
+            if (File.Exists(walletFilePath))
+            {
+                safe = Safe.Load("password", walletFilePath);
+                if (safe.Network != network)
+                    throw new Exception("Wrong network");
+            }
+            else
+            {
+                string mnemonic;
+                safe = Safe.Create(out mnemonic, "password", walletFilePath, network);
+            }
+
+            WriteLine("Safe has been set up");
+            #endregion
+
+            #region InitializeHttpSafeMonitor
+
+            var safeMonitor = new HttpSafeMonitor(safe, addressCount: 100);
+
+            // Report initialization progress
+            safeMonitor.InitializationStateChanged += delegate (object sender, EventArgs args)
+            {
+                var monitor = (HttpSafeMonitor)sender;
+                WriteLine($"Initialization state: {monitor.InitializationState}");
+            };
+            safeMonitor.InitializationProgressPercentChanged += delegate (object sender, EventArgs args)
+            {
+                var monitor = (HttpSafeMonitor)sender;
+                WriteLine($"Initializing: {monitor.InitializationProgressPercent}%");
+            };
+
+            // Let's wait until initialized
+            while (safeMonitor.InitializationState != State.Ready)
+                Thread.Sleep(100);
+
+            WriteLine("SafeMonitor is ready to work with");
+            #endregion
+
+            #region FeedBack
+            var bal = safeMonitor.SafeBalanceInfo;
+            var his = safeMonitor.SafeHistory;
+
+            WriteLine();
+            WriteLine($"Balance: {bal.Balance}");
+            WriteLine($"Confirmed balance: {bal.Confirmed}");
+            WriteLine($"Unconfirmed balance: {bal.Unconfirmed}");
+            WriteLine($"TotalReceived: {his.TotalReceived}");
+            WriteLine($"TotalSpent: {his.TotalSpent}");
+            WriteLine($"TotalReceived - TotalSpent: {his.TotalReceived - his.TotalSpent}");
+            WriteLine($"TotalReceived - TotalSpent == Balance: {his.TotalReceived - his.TotalSpent == bal.Balance}");
+            WriteLine();
+            WriteLine("RECORDS:");
+
+            foreach (var record in his.Records)
+            {
+                WriteLine();
+                WriteLine($"DateTime: {record.DateTime}");
+                WriteLine($"Amount: {record.Amount}");
+                WriteLine($"Confirmed: {record.Confirmed}");
+            }
+
+            safeMonitor.BalanceChanged += delegate (object sender, EventArgs args)
+            {
+                var monitor = (HttpSafeMonitor)sender;
+
+                WriteLine();
+                WriteLine("Change happened");
+                WriteLine($"Balance: {monitor.SafeBalanceInfo.Balance}");
+                WriteLine($"Confirmed balance: {monitor.SafeBalanceInfo.Confirmed}");
+                WriteLine($"Unconfirmed balance: {monitor.SafeBalanceInfo.Unconfirmed}");
+                WriteLine($"TotalReceived: {monitor.SafeHistory.TotalReceived}");
+                WriteLine($"TotalSpent: {monitor.SafeHistory.TotalSpent}");
+                WriteLine($"TotalReceived - TotalSpent: {monitor.SafeHistory.TotalReceived - monitor.SafeHistory.TotalSpent}");
+                WriteLine($"TotalReceived - TotalSpent == Balance: {monitor.SafeHistory.TotalReceived - monitor.SafeHistory.TotalSpent == monitor.SafeBalanceInfo.Balance}");
+                WriteLine();
+                WriteLine("Last record:");
+                var record = monitor.SafeHistory.Records.First();
+                WriteLine($"DateTime: {record.DateTime}");
+                WriteLine($"Amount: {record.Amount}");
+                WriteLine($"Confirmed: {record.Confirmed}");
+            };
+            WriteLine();
+            WriteLine("Subscribed to changes");
+
+            #endregion
+
+            WriteLine(safeMonitor.Safe.GetAddress(96));
+            var spender = new HttpSafeSender(safeMonitor.Safe);
+            //var tx = spender.CreateTransaction(
+            //    new List<AddressAmountPair>
+            //    {
+            //        new AddressAmountPair
+            //        {
+            //            Address = safeMonitor.Safe.GetAddress(99), // internal address
+            //            //Address = "n2eMqTT929pb1RDNuqEnxdaLau1rxy3efi", // outer address
+            //            Amount = 1
+            //        }
+            //    });
+            //var tx = spender.CreateSpendAllTransaction(safeMonitor.Safe.GetAddress(97));
+            //Console.WriteLine();
+            //Console.WriteLine("Transaction created");
+            //spender.Send(tx.Id);
+            //Console.WriteLine("Transaction sent");
+            //Thread.Sleep(1000);
+            //var tx2 = spender.CreateSpendAllTransaction(safeMonitor.Safe.GetAddress(96));
+            //spender.Send(tx2.Id);
+            //Console.WriteLine("Transaction sent");
+            //Thread.Sleep(1000);
+            //var tx3 = spender.CreateSpendAllTransaction(safeMonitor.Safe.GetAddress(95));
+            //spender.Send(tx3.Id);
+            //Console.WriteLine("Transaction sent");
+            //Thread.Sleep(1000);
+            //var tx4 = spender.CreateSpendAllTransaction(safeMonitor.Safe.GetAddress(94));
+            //spender.Send(tx4.Id);
+            //Console.WriteLine("All transaction sent");
         }
 
         private static void Part1()
@@ -208,7 +340,7 @@ namespace Tutorials
                 var safe = Safe.Create(out mnemonic, password, walletFilePath, network);
 
                 // Safe creation has created a mnemonic, too, you can use it to recover (or duplicate) the safe
-                Console.WriteLine(mnemonic);
+                WriteLine(mnemonic);
 
                 // Let's recover the safe to an other file
                 var recoveredSafe = Safe.Recover(mnemonic, password, recoveredWalletFilePath, network);
@@ -222,34 +354,34 @@ namespace Tutorials
 
                 // Let's write out a few things
                 // The seed private key
-                Console.WriteLine(loadedSafe.Seed);
+                WriteLine(loadedSafe.Seed);
                 // You can generate addresses with the public key, but you cannot spend them
-                Console.WriteLine(loadedSafe.SeedPublicKey);
+                WriteLine(loadedSafe.SeedPublicKey);
 
                 // The third child address
-                Console.WriteLine(loadedSafe.GetAddress(2));
+                WriteLine(loadedSafe.GetAddress(2));
                 // The first child private key
-                Console.WriteLine(loadedSafe.GetPrivateKey(0));
+                WriteLine(loadedSafe.GetPrivateKey(0));
 
                 // The first ten privkey address pair
                 for (var i = 0; i < 10; i++)
                 {
                     var privateKeyAddressPair = loadedSafe.GetPrivateKeyAddressPair(i);
-                    Console.WriteLine(privateKeyAddressPair.Address);
-                    Console.WriteLine(privateKeyAddressPair.PrivateKey);
+                    WriteLine(privateKeyAddressPair.Address);
+                    WriteLine(privateKeyAddressPair.PrivateKey);
                 }
 
                 // List out the first 10 address
                 for (var i = 0; i < 10; i++)
                 {
-                    Console.WriteLine(safe.GetAddress(i));
+                    WriteLine(safe.GetAddress(i));
                 }
 
                 // You can get the dark wallet type stealth address of the safe
-                Console.WriteLine(loadedSafe.StealthAddress);
+                WriteLine(loadedSafe.StealthAddress);
                 // Also the scan and spendkey
-                Console.WriteLine(loadedSafe.StealthScanPrivateKey);
-                Console.WriteLine(loadedSafe.StealthSpendPrivateKey);
+                WriteLine(loadedSafe.StealthScanPrivateKey);
+                WriteLine(loadedSafe.StealthSpendPrivateKey);
 
                 //Safe[] safes = new[] {hiddenSafe, recoveredSafe, loadedSafe};
                 //foreach (var safe in safes)
@@ -277,48 +409,48 @@ namespace Tutorials
 
             // Checking address balances
             var balanceInfo = httpMonitor.GetAddressBalanceInfo("1ENCTCkqoJqy2XZ2m2Dy1bRax7hsSnC5Fc");
-            Console.WriteLine($"Address balance: {balanceInfo.Balance}"); // 0,05474889
-            Console.WriteLine($"Confirmed balance: {balanceInfo.Confirmed}"); // 0
-            Console.WriteLine($"Unconfirmed balance: {balanceInfo.Unconfirmed}"); // 0,05474889
+            WriteLine($"Address balance: {balanceInfo.Balance}"); // 0,05474889
+            WriteLine($"Confirmed balance: {balanceInfo.Confirmed}"); // 0
+            WriteLine($"Unconfirmed balance: {balanceInfo.Unconfirmed}"); // 0,05474889
 
             // Get history of an address
             var history = httpMonitor.GetAddressHistory("1ENCTCkqoJqy2XZ2m2Dy1bRax7hsSnC5Fc");
 
-            Console.WriteLine("Number of transactions: " + history.Records.Count);
+            WriteLine("Number of transactions: " + history.Records.Count);
 
             // Exercise: are all transaction confirmed?
             var allTransactionsConfirmed = true;
             foreach (var record in history.Records)
             {
-                Console.WriteLine(record.TransactionId + " : " + record.Amount);
+                WriteLine(record.TransactionId + " : " + record.Amount);
                 allTransactionsConfirmed = allTransactionsConfirmed && record.Confirmed;
             }
-            Console.WriteLine("All transactions are confirmed: " + allTransactionsConfirmed);
+            WriteLine("All transactions are confirmed: " + allTransactionsConfirmed);
 
             // Exercise: get the balance of the address
-            Console.WriteLine("Total received - Total spent = Balance");
-            Console.WriteLine(history.TotalReceived + " - " + history.TotalSpent + " = " +
+            WriteLine("Total received - Total spent = Balance");
+            WriteLine(history.TotalReceived + " - " + history.TotalSpent + " = " +
                               (history.TotalReceived - history.TotalSpent));
 
             // Get some data from the transaction
             var transactionInfo1 = httpMonitor.GetTransactionInfo(history.Records.First().TransactionId);
 
-            Console.WriteLine("txid: " + transactionInfo1.Id);
-            Console.WriteLine("Network: " + transactionInfo1.Network);
-            Console.WriteLine("Confirmed: " + transactionInfo1.Confirmed);
-            Console.WriteLine("Total amount of all inputs: " + transactionInfo1.TotalInputAmount);
-            Console.WriteLine("Total amount of all outputs: " + transactionInfo1.TotalOutputAmount);
-            Console.WriteLine("Fee : " + transactionInfo1.Fee);
+            WriteLine("txid: " + transactionInfo1.Id);
+            WriteLine("Network: " + transactionInfo1.Network);
+            WriteLine("Confirmed: " + transactionInfo1.Confirmed);
+            WriteLine("Total amount of all inputs: " + transactionInfo1.TotalInputAmount);
+            WriteLine("Total amount of all outputs: " + transactionInfo1.TotalOutputAmount);
+            WriteLine("Fee : " + transactionInfo1.Fee);
 
-            Console.WriteLine(Environment.NewLine + "Input addresses and amounts: ");
+            WriteLine(Environment.NewLine + "Input addresses and amounts: ");
             foreach (var input in transactionInfo1.Inputs)
             {
-                Console.WriteLine(input.Amount + " " + input.Address);
+                WriteLine(input.Amount + " " + input.Address);
             }
-            Console.WriteLine(Environment.NewLine + "Output addresses and amounts: ");
+            WriteLine(Environment.NewLine + "Output addresses and amounts: ");
             foreach (var output in transactionInfo1.Outputs)
             {
-                Console.WriteLine(output.Amount + " " + output.Address);
+                WriteLine(output.Amount + " " + output.Address);
             }
 
             // Sometimes my API can't fully process a transaction, because it has OP_RETURN for example
@@ -327,8 +459,8 @@ namespace Tutorials
             // This tx is exotic (has OP_RETURN)
             var transactionInfo2 =
                 httpMonitor.GetTransactionInfo("8bae12b5f4c088d940733dcd1455efc6a3a69cf9340e17a981286d3778615684");
-            Console.WriteLine(transactionInfo2.Id);
-            Console.WriteLine("There are exotic inputs or outputs, so not all of them have been added successfully: "
+            WriteLine(transactionInfo2.Id);
+            WriteLine("There are exotic inputs or outputs, so not all of them have been added successfully: "
                               + Environment.NewLine + !transactionInfo2.AllInOutsAdded);
         }
 
@@ -368,12 +500,12 @@ namespace Tutorials
             safeMonitor.InitializationStateChanged += delegate(object sender, EventArgs args)
             {
                 var monitor = (HttpSafeMonitor) sender;
-                Console.WriteLine($"Initialization state: {monitor.InitializationState}");
+                WriteLine($"Initialization state: {monitor.InitializationState}");
             };
             safeMonitor.InitializationProgressPercentChanged += delegate(object sender, EventArgs args)
             {
                 var monitor = (HttpSafeMonitor) sender;
-                Console.WriteLine($"Initializing: {monitor.InitializationProgressPercent}%");
+                WriteLine($"Initializing: {monitor.InitializationProgressPercent}%");
             };
 
             // Let's wait until initialized
@@ -383,41 +515,41 @@ namespace Tutorials
             #endregion
 
             var safeBalanceInfo = safeMonitor.SafeBalanceInfo;
-            Console.WriteLine($"Number of monitored addresses: {safeBalanceInfo.MonitoredAddressCount}");
-            Console.WriteLine($"Balance: {safeBalanceInfo.Balance}");
-            Console.WriteLine($"Confirmed: {safeBalanceInfo.Confirmed}");
-            Console.WriteLine($"Unconfirmed: {safeBalanceInfo.Unconfirmed}");
+            WriteLine($"Number of monitored addresses: {safeBalanceInfo.MonitoredAddressCount}");
+            WriteLine($"Balance: {safeBalanceInfo.Balance}");
+            WriteLine($"Confirmed: {safeBalanceInfo.Confirmed}");
+            WriteLine($"Unconfirmed: {safeBalanceInfo.Unconfirmed}");
             foreach (var balanceInfo in safeBalanceInfo.AddressBalances)
             {
                 if (balanceInfo.Balance != 0)
-                    Console.WriteLine($"{balanceInfo.Address}: {balanceInfo.Balance}");
+                    WriteLine($"{balanceInfo.Address}: {balanceInfo.Balance}");
             }
 
             var history = safeMonitor.SafeHistory;
 
-            Console.WriteLine("totalreceived: " + history.TotalReceived);
-            Console.WriteLine("totalspent: " + history.TotalSpent);
+            WriteLine("totalreceived: " + history.TotalReceived);
+            WriteLine("totalspent: " + history.TotalSpent);
             foreach (var record in history.Records)
             {
-                Console.WriteLine(record.Address + " " + record.Amount);
+                WriteLine(record.Address + " " + record.Amount);
             }
 
             #region ListeningToChanges
 
-            Console.WriteLine($"Balance of safe: {safeMonitor.SafeBalanceInfo.Balance}");
-            Console.WriteLine($"Confirmed balance of safe: {safeMonitor.SafeBalanceInfo.Confirmed}");
-            Console.WriteLine($"Unconfirmed balance of safe: {safeMonitor.SafeBalanceInfo.Unconfirmed}");
+            WriteLine($"Balance of safe: {safeMonitor.SafeBalanceInfo.Balance}");
+            WriteLine($"Confirmed balance of safe: {safeMonitor.SafeBalanceInfo.Confirmed}");
+            WriteLine($"Unconfirmed balance of safe: {safeMonitor.SafeBalanceInfo.Unconfirmed}");
             
             safeMonitor.BalanceChanged += delegate(object sender, EventArgs args)
             {
                 var monitor = (HttpSafeMonitor) sender;
 
-                Console.WriteLine();
-                Console.WriteLine("Change happened");
-                Console.WriteLine($"Balance of safe: {monitor.SafeBalanceInfo.Balance}");
-                Console.WriteLine($"Confirmed balance of safe: {monitor.SafeBalanceInfo.Confirmed}");
-                Console.WriteLine($"Unconfirmed balance of safe: {monitor.SafeBalanceInfo.Unconfirmed}");
-                Console.WriteLine(
+                WriteLine();
+                WriteLine("Change happened");
+                WriteLine($"Balance of safe: {monitor.SafeBalanceInfo.Balance}");
+                WriteLine($"Confirmed balance of safe: {monitor.SafeBalanceInfo.Confirmed}");
+                WriteLine($"Unconfirmed balance of safe: {monitor.SafeBalanceInfo.Unconfirmed}");
+                WriteLine(
                     $"TransacitonId: {monitor.SafeHistory.Records.OrderBy(x => x.DateTime).Last().TransactionId}");
             };
 

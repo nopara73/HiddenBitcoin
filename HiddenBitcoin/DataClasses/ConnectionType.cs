@@ -3,6 +3,6 @@
     public enum ConnectionType
     {
         Http,
-        Spv
+        RandomNode
     }
 }

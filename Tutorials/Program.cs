@@ -337,7 +337,7 @@ namespace Tutorials
                 "keep the change you filthy animal"
                 );
             WriteLine("Transaction created");
-            Sender.Send(ConnectionType.Http, tx);
+            Sender.Send(ConnectionType.RandomNode, tx);
             WriteLine("Transaction sent");
 
             ReadLine();

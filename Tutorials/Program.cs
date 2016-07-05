@@ -289,35 +289,46 @@ namespace Tutorials
 
             #endregion
 
-            WriteLine(safeMonitor.Safe.GetAddress(96));
+            foreach (var addressBalanceInfo in safeMonitor.SafeBalanceInfo.AddressBalances)
+            {
+                if (addressBalanceInfo.Balance != 0 || addressBalanceInfo.Unconfirmed != 0)
+                {
+                    WriteLine($"{addressBalanceInfo.Address} : {addressBalanceInfo.Balance}");
+                    WriteLine($"Confirmed: {addressBalanceInfo.Confirmed} Unconfirmed: {addressBalanceInfo.Unconfirmed}");
+                }
+            }
+
             var spender = new HttpSafeSender(safeMonitor.Safe);
-            //var tx = spender.CreateTransaction(
-            //    new List<AddressAmountPair>
-            //    {
-            //        new AddressAmountPair
-            //        {
-            //            Address = safeMonitor.Safe.GetAddress(99), // internal address
-            //            //Address = "n2eMqTT929pb1RDNuqEnxdaLau1rxy3efi", // outer address
-            //            Amount = 1
-            //        }
-            //    });
-            //var tx = spender.CreateSpendAllTransaction(safeMonitor.Safe.GetAddress(97));
-            //Console.WriteLine();
-            //Console.WriteLine("Transaction created");
-            //spender.Send(tx.Id);
-            //Console.WriteLine("Transaction sent");
-            //Thread.Sleep(1000);
-            //var tx2 = spender.CreateSpendAllTransaction(safeMonitor.Safe.GetAddress(96));
-            //spender.Send(tx2.Id);
-            //Console.WriteLine("Transaction sent");
-            //Thread.Sleep(1000);
-            //var tx3 = spender.CreateSpendAllTransaction(safeMonitor.Safe.GetAddress(95));
-            //spender.Send(tx3.Id);
-            //Console.WriteLine("Transaction sent");
-            //Thread.Sleep(1000);
-            //var tx4 = spender.CreateSpendAllTransaction(safeMonitor.Safe.GetAddress(94));
-            //spender.Send(tx4.Id);
-            //Console.WriteLine("All transaction sent");
+
+            spender.TransactionCreationStateChanged += delegate(object sender, EventArgs args)
+            {
+                var currentSpender = sender as HttpSafeSender;
+                WriteLine(currentSpender.TransactionCreationState);
+            };
+
+            WriteLine("Create transaction");
+            var tx = spender.CreateTransaction(
+                new List<AddressAmountPair>
+                {
+                    new AddressAmountPair
+                    {
+                        Address = "2NBY5BrXhnWESaLqxYvRWUZ8xzDF3aZqX7S",
+                        Amount = 0.1m
+                    },
+                    new AddressAmountPair
+                    {
+                        Address = "2N66DDrmjDCMM3yMSYtAQyAqRtasSkFhbmX",
+                        Amount = 0.1m
+                    }
+                },
+                FeeType.Hour,
+                "keep the change you filthy animal"
+                );
+            WriteLine("Transaction created");
+            spender.Send(tx.Id);
+            WriteLine("Transaction sent");
+
+            ReadLine();
         }
 
         private static void Part1()

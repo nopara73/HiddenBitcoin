@@ -2,7 +2,9 @@
 {
     public enum TransactionCreationState
     {
-        NotStarted,
-        Ready
+        NotInProgress,
+        GatheringCoinsToSpend,
+        BuildingTransaction,
+        CheckingTransaction
     }
 }

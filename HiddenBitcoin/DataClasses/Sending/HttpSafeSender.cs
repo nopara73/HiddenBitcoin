@@ -15,7 +15,7 @@ namespace HiddenBitcoin.DataClasses.Sending
         public HttpSafe Safe { get; }
 
         public TransactionInfo CreateTransaction(List<AddressAmountPair> to, FeeType feeType = FeeType.Fastest,
-            string message = "", bool spendUnconfirmed = false)
+            string message = "")
         {
             var notEmptyPrivateKeys = Safe.NotEmptyAddresses.Select(Safe.GetPrivateKey).ToList();
 
@@ -24,13 +24,12 @@ namespace HiddenBitcoin.DataClasses.Sending
                 to,
                 feeType,
                 Safe.UnusedAddresses.First(),
-                message,
-                spendUnconfirmed
+                message
                 );
         }
 
         public TransactionInfo CreateSendAllTransaction(string toAddress, FeeType feeType = FeeType.Fastest,
-            string message = "", bool spendUnconfirmed = false)
+            string message = "")
         {
             var notEmptyPrivateKeys = Safe.NotEmptyAddresses.Select(Safe.GetPrivateKey).ToList();
 
@@ -38,8 +37,7 @@ namespace HiddenBitcoin.DataClasses.Sending
                 notEmptyPrivateKeys,
                 toAddress,
                 feeType,
-                message,
-                spendUnconfirmed
+                message
                 );
         }
     }

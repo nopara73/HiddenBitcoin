@@ -55,8 +55,8 @@ namespace HiddenBitcoin.DataClasses.Sending
         }
 
         public override TransactionInfo CreateTransaction(List<string> fromPrivateKeys, List<AddressAmountPair> to,
-            FeeType feeType = FeeType.Fastest, string changeAddress = "", string message = "", bool spendAll = false,
-            bool spendUnconfirmed = false)
+            FeeType feeType = FeeType.Fastest, string changeAddress = "", string message = "", bool spendAll = false
+            )
         {
             lock (CreatingTransaction)
             {

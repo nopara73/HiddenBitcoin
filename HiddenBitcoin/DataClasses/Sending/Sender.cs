@@ -32,7 +32,7 @@ namespace HiddenBitcoin.DataClasses.Sending
         }
 
         public TransactionInfo CreateSpendAllTransaction(List<string> fromPrivateKeys, string toAddress,
-            FeeType feeType = FeeType.Fastest, string message = "", bool spendUnconfirmed = false)
+            FeeType feeType = FeeType.Fastest, string message = "")
         {
             var addressAmountPair = new AddressAmountPair
             {
@@ -45,8 +45,7 @@ namespace HiddenBitcoin.DataClasses.Sending
                 new List<AddressAmountPair> { addressAmountPair },
                 feeType,
                 message: message,
-                spendAll: true,
-                spendUnconfirmed: spendUnconfirmed 
+                spendAll: true
                 );
         }
 
@@ -58,10 +57,9 @@ namespace HiddenBitcoin.DataClasses.Sending
         /// <param name="changeAddress"></param>
         /// <param name="message"></param>
         /// <param name="spendAll">If true changeAddress and amounts of to does not matter, we send them all</param>
-        /// <param name="spendUnconfirmed"></param>
         /// <returns></returns>
         public abstract TransactionInfo CreateTransaction(List<string> fromPrivateKeys, List<AddressAmountPair> to,
-            FeeType feeType = FeeType.Fastest, string changeAddress = "", string message = "", bool spendAll = false, bool spendUnconfirmed = false);
+            FeeType feeType = FeeType.Fastest, string changeAddress = "", string message = "", bool spendAll = false);
 
         public abstract void Send(string transactionId);
     }

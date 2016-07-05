@@ -321,7 +321,7 @@ namespace Tutorials
                         Amount = 0.1m
                     }
                 },
-                FeeType.Hour,
+                FeeType.Fastest,
                 "keep the change you filthy animal"
                 );
             WriteLine("Transaction created");

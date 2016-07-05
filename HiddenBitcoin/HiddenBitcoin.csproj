@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataClasses\AddressAmountPair.cs" />
+    <Compile Include="DataClasses\ConnectionType.cs" />
     <Compile Include="DataClasses\FeeApi.cs" />
     <Compile Include="DataClasses\Histories\AddressHistory.cs" />
     <Compile Include="DataClasses\Histories\AddressHistoryRecord.cs" />
@@ -69,11 +70,12 @@
     <Compile Include="DataClasses\Monitoring\Monitor.cs" />
     <Compile Include="DataClasses\Network.cs" />
     <Compile Include="DataClasses\PrivateKeyAddressPair.cs" />
-    <Compile Include="DataClasses\Sending\HttpSafeSender.cs" />
-    <Compile Include="DataClasses\Sending\HttpSender.cs" />
+    <Compile Include="DataClasses\Sending\HttpSafeBuilder.cs" />
+    <Compile Include="DataClasses\Sending\HttpBuilder.cs" />
     <Compile Include="DataClasses\Sending\Sender.cs" />
+    <Compile Include="DataClasses\Sending\Builder.cs" />
     <Compile Include="DataClasses\States\State.cs" />
-    <Compile Include="DataClasses\States\TransactionCreationState.cs" />
+    <Compile Include="DataClasses\States\TransactionBuildState.cs" />
     <Compile Include="DataClasses\TransactionInfo.cs" />
     <Compile Include="DataClasses\InOutInfo.cs" />
     <Compile Include="DataClasses\KeyManagement\WalletFileSerializer.cs" />

@@ -23,14 +23,15 @@ namespace HiddenBitcoin.DataClasses
             Id = transactionResponse.TransactionId.ToString();
             Confirmed = transactionResponse.Block != null;
             Fee = transactionResponse.Fees.ToDecimal(MoneyUnit.BTC);
-            
+
             AllInOutsAdded =
                 FillInOutInfoList(out _inputs, _spentCoins)
                 &&
                 FillInOutInfoList(out _outputs, _receivedCoins);
         }
 
-        internal TransactionInfo(IEnumerable<Coin> spentCoins, IEnumerable<Coin> receivedCoins, Network network, string transactionId, bool confirmed, decimal fee)
+        internal TransactionInfo(IEnumerable<Coin> spentCoins, IEnumerable<Coin> receivedCoins, Network network,
+            string transactionId, bool confirmed, decimal fee)
         {
             _network = Convert.ToNBitcoinNetwork(network);
 

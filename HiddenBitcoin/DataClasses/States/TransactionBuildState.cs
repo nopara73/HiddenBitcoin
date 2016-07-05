@@ -1,6 +1,6 @@
 ﻿namespace HiddenBitcoin.DataClasses.States
 {
-    public enum TransactionCreationState
+    public enum TransactionBuildState
     {
         NotInProgress,
         GatheringCoinsToSpend,

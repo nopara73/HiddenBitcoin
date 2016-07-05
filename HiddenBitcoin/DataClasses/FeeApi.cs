@@ -36,13 +36,13 @@ namespace HiddenBitcoin.DataClasses
             switch (feeType)
             {
                 case FeeType.Fastest:
-                    feeInSatoshi = FeesPerBytes.Fastest * transactionSizeInBytes;
+                    feeInSatoshi = FeesPerBytes.Fastest*transactionSizeInBytes;
                     break;
                 case FeeType.HalfHour:
-                    feeInSatoshi = FeesPerBytes.HalfHour * transactionSizeInBytes;
+                    feeInSatoshi = FeesPerBytes.HalfHour*transactionSizeInBytes;
                     break;
                 case FeeType.Hour:
-                    feeInSatoshi = FeesPerBytes.Hour * transactionSizeInBytes;
+                    feeInSatoshi = FeesPerBytes.Hour*transactionSizeInBytes;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(feeType), feeType, null);
@@ -57,6 +57,7 @@ namespace HiddenBitcoin.DataClasses
         {
             UpdateFeesAsync().Wait();
         }
+
         // ReSharper disable once FunctionNeverReturns
         private static async Task UpdateFeesAsync()
         {

@@ -7,7 +7,8 @@ namespace HiddenBitcoin.DataClasses.KeyManagement
 {
     public class HttpSafe : LimitedSafe
     {
-        internal HttpSafe(HttpSafeMonitor httpSafeMonitor) : base(httpSafeMonitor.BaseSafe, httpSafeMonitor.AddressCount)
+        internal HttpSafe(HttpSafeMonitor httpSafeMonitor)
+            : base(httpSafeMonitor.BaseSafe, httpSafeMonitor.AddressCount)
         {
             HttpSafeMonitor = httpSafeMonitor;
         }
@@ -32,8 +33,8 @@ namespace HiddenBitcoin.DataClasses.KeyManagement
         }
 
         public List<string> NotEmptyAddresses
-            => (HttpSafeMonitor.SafeBalanceInfo.AddressBalances.Where(
+            => HttpSafeMonitor.SafeBalanceInfo.AddressBalances.Where(
                 addressBalanceInfo => addressBalanceInfo.Balance > 0)
-                .Select(addressBalanceInfo => addressBalanceInfo.Address)).ToList();
+                .Select(addressBalanceInfo => addressBalanceInfo.Address).ToList();
     }
 }

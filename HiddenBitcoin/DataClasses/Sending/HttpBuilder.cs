@@ -10,28 +10,28 @@ using QBitNinja.Client;
 
 namespace HiddenBitcoin.DataClasses.Sending
 {
-    public class HttpSender : Sender, INotifyPropertyChanged
+    public class HttpBuilder : Builder, INotifyPropertyChanged
     {
-        private static readonly object CreatingTransaction = new object();
+        private static readonly object BuildingTransaction = new object();
 
         protected readonly QBitNinjaClient Client;
-        private TransactionCreationState _transactionCreationState;
+        private TransactionBuildState _transactionBuildState;
 
-        public HttpSender(Network network) : base(network)
+        public HttpBuilder(Network network) : base(network)
         {
             Client = new QBitNinjaClient(_Network);
-            TransactionCreationState = TransactionCreationState.NotInProgress;
+            TransactionBuildState = TransactionBuildState.NotInProgress;
         }
 
-        public TransactionCreationState TransactionCreationState
+        public TransactionBuildState TransactionBuildState
         {
-            get { return _transactionCreationState; }
+            get { return _transactionBuildState; }
             private set
             {
-                if (value == _transactionCreationState) return;
-                _transactionCreationState = value;
+                if (value == _transactionBuildState) return;
+                _transactionBuildState = value;
                 OnPropertyChanged();
-                OnTransactionCreationStateChanged();
+                OnTransactionBuildStateChanged();
             }
         }
 
@@ -47,22 +47,22 @@ namespace HiddenBitcoin.DataClasses.Sending
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public event EventHandler TransactionCreationStateChanged;
+        public event EventHandler TransactionBuildStateChanged;
 
-        protected virtual void OnTransactionCreationStateChanged()
+        protected virtual void OnTransactionBuildStateChanged()
         {
-            TransactionCreationStateChanged?.Invoke(this, EventArgs.Empty);
+            TransactionBuildStateChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public override TransactionInfo CreateTransaction(List<string> fromPrivateKeys, List<AddressAmountPair> to,
+        public override TransactionInfo BuildTransaction(List<string> fromPrivateKeys, List<AddressAmountPair> to,
             FeeType feeType = FeeType.Fastest, string changeAddress = "", string message = "", bool spendAll = false
             )
         {
-            lock (CreatingTransaction)
+            lock (BuildingTransaction)
             {
                 try
                 {
-                    TransactionCreationState = TransactionCreationState.GatheringCoinsToSpend;
+                    TransactionBuildState = TransactionBuildState.GatheringCoinsToSpend;
                     // Set secrets
                     var secrets = fromPrivateKeys.Select(Convert.ToISecret).ToList();
 
@@ -72,7 +72,7 @@ namespace HiddenBitcoin.DataClasses.Sending
                     // Gather coins can be spend
                     var unspentCoins = GetUnspentCoins(secrets);
 
-                    TransactionCreationState = TransactionCreationState.BuildingTransaction;
+                    TransactionBuildState = TransactionBuildState.BuildingTransaction;
                     // Build the transaction
                     var builder = new TransactionBuilder();
                     var transaction = new Transaction();
@@ -88,14 +88,14 @@ namespace HiddenBitcoin.DataClasses.Sending
                         var amountToReceive = coinsToSpend.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC)) - fee;
 
                         // build fake transaction
-                        transaction = CreateSendAllTransaction(to, message, secrets, coinsToSpend, fee, amountToReceive,
+                        transaction = BuildSendAllTransaction(to, message, secrets, coinsToSpend, fee, amountToReceive,
                             out builder);
 
                         // estimate fee and build real transaction
                         amountToReceive += fee;
                         fee = FeeApi.GetRecommendedFee(builder.EstimateSize(transaction), feeType);
                         amountToReceive -= fee;
-                        transaction = CreateSendAllTransaction(to, message, secrets, coinsToSpend, fee, amountToReceive,
+                        transaction = BuildSendAllTransaction(to, message, secrets, coinsToSpend, fee, amountToReceive,
                             out builder);
                     }
                     else
@@ -113,7 +113,7 @@ namespace HiddenBitcoin.DataClasses.Sending
                             // if doesn't reach amount, continue adding next coin
                             if (coinsToSpend.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC)) <= transactionCost) continue;
                             // if it does reach build fake transaction to estimate fee
-                            transaction = CreateTransaction(to, secrets, changeScriptPubKey, coinsToSpend, fee,
+                            transaction = BuildTransaction(to, secrets, changeScriptPubKey, coinsToSpend, fee,
                                 out builder,
                                 message);
 
@@ -124,7 +124,7 @@ namespace HiddenBitcoin.DataClasses.Sending
                             // does it still reach amount? if not continue adding next coin
                             if (coinsToSpend.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC)) <= transactionCost) continue;
                             // if it does reach build the real transaction with the new fee
-                            transaction = CreateTransaction(to, secrets, changeScriptPubKey, coinsToSpend, fee,
+                            transaction = BuildTransaction(to, secrets, changeScriptPubKey, coinsToSpend, fee,
                                 out builder,
                                 message);
 
@@ -135,17 +135,17 @@ namespace HiddenBitcoin.DataClasses.Sending
                             throw new Exception("Not enough funds");
                     }
 
-                    TransactionCreationState = TransactionCreationState.CheckingTransaction;
+                    TransactionBuildState = TransactionBuildState.CheckingTransaction;
                     builder.Check(transaction);
                     if (!builder.Verify(transaction))
                         throw new Exception("Wrong transaction");
-                    CreatedTransactions.Add(transaction);
+                    Sender.BuiltTransactions.Add(transaction);
                     return new TransactionInfo(coinsToSpend, transaction.Outputs.AsCoins(), Network,
                         transaction.GetHash().ToString(), false, fee);
                 }
                 finally
                 {
-                    TransactionCreationState = TransactionCreationState.NotInProgress;
+                    TransactionBuildState = TransactionBuildState.NotInProgress;
                 }
             }
         }
@@ -184,7 +184,7 @@ namespace HiddenBitcoin.DataClasses.Sending
             return unspentCoins;
         }
 
-        private Transaction CreateSendAllTransaction(IEnumerable<AddressAmountPair> to, string message,
+        private Transaction BuildSendAllTransaction(IEnumerable<AddressAmountPair> to, string message,
             IEnumerable<ISecret> secrets, IReadOnlyCollection<Coin> coinsToSpend, decimal fee, decimal amountToReceive,
             out TransactionBuilder builder)
         {
@@ -218,7 +218,7 @@ namespace HiddenBitcoin.DataClasses.Sending
             return builder.SignTransaction(transaction);
         }
 
-        private Transaction CreateTransaction(IEnumerable<AddressAmountPair> to, IEnumerable<ISecret> secrets,
+        private Transaction BuildTransaction(IEnumerable<AddressAmountPair> to, IEnumerable<ISecret> secrets,
             Script changeScriptPubKey, IReadOnlyCollection<Coin> coinsToSpend, decimal fee,
             out TransactionBuilder builder, string message)
         {
@@ -252,21 +252,6 @@ namespace HiddenBitcoin.DataClasses.Sending
             });
 
             return builder.SignTransaction(transaction);
-        }
-
-        public override void Send(string transactionId)
-        {
-            foreach (var transaction in CreatedTransactions)
-            {
-                if (transaction.GetHash() != new uint256(transactionId)) continue;
-                var broadcastResponse = Client.Broadcast(transaction).Result;
-
-                if (!broadcastResponse.Success)
-                    throw new Exception($"ErrorCode: {broadcastResponse.Error.ErrorCode}" + Environment.NewLine
-                                        + broadcastResponse.Error.Reason);
-                return;
-            }
-            throw new Exception("Transaction has not been created");
         }
     }
 }

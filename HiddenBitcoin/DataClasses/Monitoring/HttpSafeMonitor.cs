@@ -22,6 +22,8 @@ namespace HiddenBitcoin.DataClasses.Monitoring
         private State _initializationState;
         private SafeBalanceInfo _safeBalanceInfo;
         private SafeHistory _safeHistory;
+
+        private int _syncProgressPercent;
         internal Safe BaseSafe;
 
         public HttpSafeMonitor(Safe safe, int addressCount) : base(safe.Network)
@@ -63,7 +65,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
                         }
                     }
                 }
-                
+
                 _safeHistory = value;
                 AdjustState(AddressCount);
                 if (changeHappened) OnBalanceChanged();
@@ -209,14 +211,13 @@ namespace HiddenBitcoin.DataClasses.Monitoring
             PeriodicUpdate();
         }
 
-        private int _syncProgressPercent;
         private void AdjustState(int syncedAddressCount)
         {
             if (syncedAddressCount < 0 || syncedAddressCount > AddressCount)
                 throw new ArgumentOutOfRangeException(
                     $"syncedAddressCount cannot be {syncedAddressCount}. It must be >=0 and <=AddressCount");
 
-            _syncProgressPercent = (int)Math.Round((double)(100 * syncedAddressCount) / AddressCount);
+            _syncProgressPercent = (int) Math.Round((double) (100*syncedAddressCount)/AddressCount);
             if (_syncProgressPercent == 100)
             {
                 if (_safeHistory == null || _safeBalanceInfo == null)
@@ -272,7 +273,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
                     string address;
                     if (!SafeContainsCoin(out address, coin)) continue;
 
-                    var amount = ((Money)coin.Amount).ToDecimal(MoneyUnit.BTC);
+                    var amount = ((Money) coin.Amount).ToDecimal(MoneyUnit.BTC);
 
                     receivedAddressAmountPairs.Add(operation.Confirmations == 0
                         ? new Tuple<string, decimal, decimal>(address, amount, 0m)
@@ -286,7 +287,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
                     string address;
                     if (!SafeContainsCoin(out address, coin)) continue;
 
-                    var amount = ((Money)coin.Amount).ToDecimal(MoneyUnit.BTC);
+                    var amount = ((Money) coin.Amount).ToDecimal(MoneyUnit.BTC);
                     spentAddressAmountPairs.Add(operation.Confirmations == 0
                         ? new Tuple<string, decimal, decimal>(address, amount, 0m)
                         : new Tuple<string, decimal, decimal>(address, 0m, amount));
@@ -307,7 +308,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
 
             foreach (var address in Safe.Addresses)
             {
-                if(!addressHistories.Select(x => x.Address).Contains(address))
+                if (!addressHistories.Select(x => x.Address).Contains(address))
                     addressHistories.Add(new AddressHistory(address, new List<BalanceOperation>()));
             }
 

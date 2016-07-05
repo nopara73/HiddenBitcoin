@@ -1,4 +1,5 @@
 ﻿// ReSharper disable All
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -61,8 +62,8 @@ namespace Tutorials
                 WriteLine($"Confirmed: {record.Confirmed}");
             }
 
-            //var spender = new HttpSender(Network.TestNet);
-            //var tx = spender.CreateTransaction(
+            //var spender = new HttpBuilder(Network.TestNet);
+            //var tx = spender.BuildTransaction(
             //    new List<string> { privateKey },
             //    new List<AddressAmountPair>
             //    {
@@ -82,8 +83,9 @@ namespace Tutorials
         private static void TemporarilyTestHttpSafeMonitor()
         {
             var network = Network.TestNet;
+
             #region SetupSafe
-            
+
             string walletFilePath;
             if (network == Network.MainNet)
                 walletFilePath = "MainNetHidden2.wallet";
@@ -104,6 +106,7 @@ namespace Tutorials
             }
 
             WriteLine("Safe has been set up");
+
             #endregion
 
             #region InitializeHttpSafeMonitor
@@ -111,14 +114,14 @@ namespace Tutorials
             var safeMonitor = new HttpSafeMonitor(safe, addressCount: 100);
 
             // Report initialization progress
-            safeMonitor.InitializationStateChanged += delegate (object sender, EventArgs args)
+            safeMonitor.InitializationStateChanged += delegate(object sender, EventArgs args)
             {
-                var monitor = (HttpSafeMonitor)sender;
+                var monitor = (HttpSafeMonitor) sender;
                 WriteLine($"Initialization state: {monitor.InitializationState}");
             };
-            safeMonitor.InitializationProgressPercentChanged += delegate (object sender, EventArgs args)
+            safeMonitor.InitializationProgressPercentChanged += delegate(object sender, EventArgs args)
             {
-                var monitor = (HttpSafeMonitor)sender;
+                var monitor = (HttpSafeMonitor) sender;
                 WriteLine($"Initializing: {monitor.InitializationProgressPercent}%");
             };
 
@@ -127,8 +130,9 @@ namespace Tutorials
                 Thread.Sleep(100);
 
             WriteLine("SafeMonitor is ready to work with");
+
             #endregion
-            
+
             var bal = safeMonitor.SafeBalanceInfo;
             var his = safeMonitor.SafeHistory;
 
@@ -151,9 +155,9 @@ namespace Tutorials
                 WriteLine($"Confirmed: {record.Confirmed}");
             }
 
-            safeMonitor.BalanceChanged += delegate (object sender, EventArgs args)
+            safeMonitor.BalanceChanged += delegate(object sender, EventArgs args)
             {
-                var monitor = (HttpSafeMonitor)sender;
+                var monitor = (HttpSafeMonitor) sender;
 
                 WriteLine();
                 WriteLine("Change happened");
@@ -162,8 +166,10 @@ namespace Tutorials
                 WriteLine($"Unconfirmed balance: {monitor.SafeBalanceInfo.Unconfirmed}");
                 WriteLine($"TotalReceived: {monitor.SafeHistory.TotalReceived}");
                 WriteLine($"TotalSpent: {monitor.SafeHistory.TotalSpent}");
-                WriteLine($"TotalReceived - TotalSpent: {monitor.SafeHistory.TotalReceived - monitor.SafeHistory.TotalSpent}");
-                WriteLine($"TotalReceived - TotalSpent == Balance: {monitor.SafeHistory.TotalReceived - monitor.SafeHistory.TotalSpent == monitor.SafeBalanceInfo.Balance}");
+                WriteLine(
+                    $"TotalReceived - TotalSpent: {monitor.SafeHistory.TotalReceived - monitor.SafeHistory.TotalSpent}");
+                WriteLine(
+                    $"TotalReceived - TotalSpent == Balance: {monitor.SafeHistory.TotalReceived - monitor.SafeHistory.TotalSpent == monitor.SafeBalanceInfo.Balance}");
                 WriteLine();
                 WriteLine("Last record:");
                 var record = monitor.SafeHistory.Records.First();
@@ -174,8 +180,8 @@ namespace Tutorials
             WriteLine();
             WriteLine("Subscribed to changes");
 
-            //var spender = new HttpSafeSender(safeMonitor.Safe);
-            //var tx = spender.CreateTransaction(
+            //var spender = new HttpSafeBuilder(safeMonitor.Safe);
+            //var tx = spender.BuildTransaction(
             //    new List<AddressAmountPair>
             //    {
             //        new AddressAmountPair
@@ -194,6 +200,7 @@ namespace Tutorials
         private static void TemporarilySendTest()
         {
             var network = Network.TestNet;
+
             #region SetupSafe
 
             string walletFilePath;
@@ -216,6 +223,7 @@ namespace Tutorials
             }
 
             WriteLine("Safe has been set up");
+
             #endregion
 
             #region InitializeHttpSafeMonitor
@@ -223,14 +231,14 @@ namespace Tutorials
             var safeMonitor = new HttpSafeMonitor(safe, addressCount: 100);
 
             // Report initialization progress
-            safeMonitor.InitializationStateChanged += delegate (object sender, EventArgs args)
+            safeMonitor.InitializationStateChanged += delegate(object sender, EventArgs args)
             {
-                var monitor = (HttpSafeMonitor)sender;
+                var monitor = (HttpSafeMonitor) sender;
                 WriteLine($"Initialization state: {monitor.InitializationState}");
             };
-            safeMonitor.InitializationProgressPercentChanged += delegate (object sender, EventArgs args)
+            safeMonitor.InitializationProgressPercentChanged += delegate(object sender, EventArgs args)
             {
-                var monitor = (HttpSafeMonitor)sender;
+                var monitor = (HttpSafeMonitor) sender;
                 WriteLine($"Initializing: {monitor.InitializationProgressPercent}%");
             };
 
@@ -239,9 +247,11 @@ namespace Tutorials
                 Thread.Sleep(100);
 
             WriteLine("SafeMonitor is ready to work with");
+
             #endregion
 
             #region FeedBack
+
             var bal = safeMonitor.SafeBalanceInfo;
             var his = safeMonitor.SafeHistory;
 
@@ -264,9 +274,9 @@ namespace Tutorials
                 WriteLine($"Confirmed: {record.Confirmed}");
             }
 
-            safeMonitor.BalanceChanged += delegate (object sender, EventArgs args)
+            safeMonitor.BalanceChanged += delegate(object sender, EventArgs args)
             {
-                var monitor = (HttpSafeMonitor)sender;
+                var monitor = (HttpSafeMonitor) sender;
 
                 WriteLine();
                 WriteLine("Change happened");
@@ -275,8 +285,10 @@ namespace Tutorials
                 WriteLine($"Unconfirmed balance: {monitor.SafeBalanceInfo.Unconfirmed}");
                 WriteLine($"TotalReceived: {monitor.SafeHistory.TotalReceived}");
                 WriteLine($"TotalSpent: {monitor.SafeHistory.TotalSpent}");
-                WriteLine($"TotalReceived - TotalSpent: {monitor.SafeHistory.TotalReceived - monitor.SafeHistory.TotalSpent}");
-                WriteLine($"TotalReceived - TotalSpent == Balance: {monitor.SafeHistory.TotalReceived - monitor.SafeHistory.TotalSpent == monitor.SafeBalanceInfo.Balance}");
+                WriteLine(
+                    $"TotalReceived - TotalSpent: {monitor.SafeHistory.TotalReceived - monitor.SafeHistory.TotalSpent}");
+                WriteLine(
+                    $"TotalReceived - TotalSpent == Balance: {monitor.SafeHistory.TotalReceived - monitor.SafeHistory.TotalSpent == monitor.SafeBalanceInfo.Balance}");
                 WriteLine();
                 WriteLine("Last record:");
                 var record = monitor.SafeHistory.Records.First();
@@ -298,16 +310,16 @@ namespace Tutorials
                 }
             }
 
-            var spender = new HttpSafeSender(safeMonitor.Safe);
+            var spender = new HttpSafeBuilder(safeMonitor.Safe);
 
-            spender.TransactionCreationStateChanged += delegate(object sender, EventArgs args)
+            spender.TransactionBuildStateChanged += delegate(object sender, EventArgs args)
             {
-                var currentSpender = sender as HttpSafeSender;
-                WriteLine(currentSpender.TransactionCreationState);
+                var currentSpender = sender as HttpSafeBuilder;
+                WriteLine(currentSpender.TransactionBuildState);
             };
 
             WriteLine("Create transaction");
-            var tx = spender.CreateTransaction(
+            var tx = spender.BuildTransaction(
                 new List<AddressAmountPair>
                 {
                     new AddressAmountPair
@@ -325,7 +337,7 @@ namespace Tutorials
                 "keep the change you filthy animal"
                 );
             WriteLine("Transaction created");
-            spender.Send(tx.Id);
+            Sender.Send(ConnectionType.Http, tx);
             WriteLine("Transaction sent");
 
             ReadLine();
@@ -441,7 +453,7 @@ namespace Tutorials
             // Exercise: get the balance of the address
             WriteLine("Total received - Total spent = Balance");
             WriteLine(history.TotalReceived + " - " + history.TotalSpent + " = " +
-                              (history.TotalReceived - history.TotalSpent));
+                      (history.TotalReceived - history.TotalSpent));
 
             // Get some data from the transaction
             var transactionInfo1 = httpMonitor.GetTransactionInfo(history.Records.First().TransactionId);
@@ -472,7 +484,7 @@ namespace Tutorials
                 httpMonitor.GetTransactionInfo("8bae12b5f4c088d940733dcd1455efc6a3a69cf9340e17a981286d3778615684");
             WriteLine(transactionInfo2.Id);
             WriteLine("There are exotic inputs or outputs, so not all of them have been added successfully: "
-                              + Environment.NewLine + !transactionInfo2.AllInOutsAdded);
+                      + Environment.NewLine + !transactionInfo2.AllInOutsAdded);
         }
 
         private static void Part2Lesson2()
@@ -550,7 +562,7 @@ namespace Tutorials
             WriteLine($"Balance of safe: {safeMonitor.SafeBalanceInfo.Balance}");
             WriteLine($"Confirmed balance of safe: {safeMonitor.SafeBalanceInfo.Confirmed}");
             WriteLine($"Unconfirmed balance of safe: {safeMonitor.SafeBalanceInfo.Unconfirmed}");
-            
+
             safeMonitor.BalanceChanged += delegate(object sender, EventArgs args)
             {
                 var monitor = (HttpSafeMonitor) sender;

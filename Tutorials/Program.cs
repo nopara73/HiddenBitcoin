@@ -28,7 +28,7 @@ namespace Tutorials
 
             //TemporarilyTestHttpSafeMonitor();
             //TemporarilyTestHttpMonitor();
-            TemporarilySendTest();
+            //TemporarilySendTest();
 
             ReadLine();
         }

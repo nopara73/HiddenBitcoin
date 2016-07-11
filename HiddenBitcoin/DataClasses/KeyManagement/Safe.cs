@@ -42,6 +42,11 @@ namespace HiddenBitcoin.DataClasses.KeyManagement
             return _seedPrivateKey.Derive(keyPath).ScriptPubKey.GetDestinationAddress(_network).ToWif();
         }
 
+        public void DeleteWalletFile()
+        {
+            File.Delete(WalletFilePath);
+        }
+
         public virtual string GetPrivateKey(int index)
         {
             const string startPath = NormalHdPath;

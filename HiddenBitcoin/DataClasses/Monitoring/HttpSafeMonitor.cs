@@ -186,7 +186,7 @@ namespace HiddenBitcoin.DataClasses.Monitoring
             InitializationProgressPercentChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public async void StartInitializingQBitNinjaWallet()
+        internal async void StartInitializingQBitNinjaWallet()
         {
             await Task.Run(() =>
             {

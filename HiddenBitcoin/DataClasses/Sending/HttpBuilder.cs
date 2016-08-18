@@ -7,6 +7,7 @@ using System.Text;
 using HiddenBitcoin.DataClasses.States;
 using NBitcoin;
 using QBitNinja.Client;
+using QBitNinja.Client.Models;
 
 namespace HiddenBitcoin.DataClasses.Sending
 {
@@ -88,14 +89,14 @@ namespace HiddenBitcoin.DataClasses.Sending
                         var amountToReceive = coinsToSpend.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC)) - fee;
 
                         // build fake transaction
-                        transaction = BuildSendAllTransaction(to, message, secrets, coinsToSpend, fee, amountToReceive,
+                        transaction = BuildSpendAllTransaction(to, message, secrets, coinsToSpend, fee, amountToReceive,
                             out builder);
 
                         // estimate fee and build real transaction
                         amountToReceive += fee;
                         fee = FeeApi.GetRecommendedFee(builder.EstimateSize(transaction), feeType);
                         amountToReceive -= fee;
-                        transaction = BuildSendAllTransaction(to, message, secrets, coinsToSpend, fee, amountToReceive,
+                        transaction = BuildSpendAllTransaction(to, message, secrets, coinsToSpend, fee, amountToReceive,
                             out builder);
                     }
                     else
@@ -184,7 +185,7 @@ namespace HiddenBitcoin.DataClasses.Sending
             return unspentCoins;
         }
 
-        private Transaction BuildSendAllTransaction(IEnumerable<AddressAmountPair> to, string message,
+        private Transaction BuildSpendAllTransaction(IEnumerable<AddressAmountPair> to, string message,
             IEnumerable<ISecret> secrets, IReadOnlyCollection<Coin> coinsToSpend, decimal fee, decimal amountToReceive,
             out TransactionBuilder builder)
         {

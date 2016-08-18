@@ -1,7 +1,9 @@
 ﻿using System.Linq;
+using System.Threading;
 using HiddenBitcoin.DataClasses;
 using HiddenBitcoin.DataClasses.KeyManagement;
 using HiddenBitcoin.DataClasses.Monitoring;
+using HiddenBitcoin.DataClasses.States;
 using Xunit;
 
 namespace Tests
@@ -56,6 +58,41 @@ namespace Tests
             Assert.True(transactionInfo.Inputs.Count > 10);
             Assert.Equal(transactionInfo.TotalOutputAmount, 15m);
             Assert.Equal(transactionInfo.Outputs.First().Address, "1EDt6Pe5psPLrAKmq7xawCFo9LxtKoJz7g");
+        }
+
+        [Fact]
+        public void EmptySafeHttpMonitorWorks()
+        {
+            string mnemonic;
+            var safe = Safe.Create(out mnemonic, "", "foo", Network.MainNet);
+            safe.DeleteWalletFile();
+
+            var monitor = new HttpSafeMonitor(safe, 10);
+
+            while (monitor.InitializationProgressPercent != 100)
+            {
+                Thread.Sleep(100);
+            }
+
+            Assert.Equal(monitor.AddressCount, 10);
+            Assert.Equal(monitor.InitializationState, State.Ready);
+
+            Assert.Equal(monitor.Safe.NotEmptyAddresses.Count, 0);
+            Assert.Equal(monitor.Safe.UnusedAddresses.Count, 10);
+            Assert.Equal(monitor.Safe.AddressCount, 10);
+            Assert.Equal(monitor.Safe.Addresses.Count, 10);
+
+            Assert.Equal(monitor.SafeHistory.Records.Count, 0);
+            Assert.Equal(monitor.SafeHistory.TotalReceived, 0);
+            Assert.Equal(monitor.SafeHistory.TotalSpent, 0);
+            Assert.Equal(monitor.SafeBalanceInfo.MonitoredAddressCount, 10);
+            Assert.Equal(monitor.SafeBalanceInfo.Balance, 0);
+            Assert.Equal(monitor.SafeBalanceInfo.Confirmed, 0);
+            Assert.Equal(monitor.SafeBalanceInfo.Unconfirmed, 0);
+            foreach (var balance in monitor.SafeBalanceInfo.AddressBalances)
+            {
+                Assert.Equal(balance.Balance, 0);
+            }
         }
     }
 }

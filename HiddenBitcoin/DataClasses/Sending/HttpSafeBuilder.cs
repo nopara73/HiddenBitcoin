@@ -28,7 +28,7 @@ namespace HiddenBitcoin.DataClasses.Sending
                 );
         }
 
-        public TransactionInfo BuildSendAllTransaction(string toAddress, FeeType feeType = FeeType.Fastest,
+        public TransactionInfo BuildSpendAllTransaction(string toAddress, FeeType feeType = FeeType.Fastest,
             string message = "")
         {
             var notEmptyPrivateKeys = Safe.NotEmptyAddresses.Select(Safe.GetPrivateKey).ToList();

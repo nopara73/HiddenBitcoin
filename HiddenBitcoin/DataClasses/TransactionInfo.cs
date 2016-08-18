@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
 using QBitNinja.Client.Models;
@@ -15,6 +16,9 @@ namespace HiddenBitcoin.DataClasses
 
         internal TransactionInfo(GetTransactionResponse transactionResponse, Network network)
         {
+            if(transactionResponse == null)
+                throw new NullReferenceException("Transaction does not exists");
+
             _network = Convert.ToNBitcoinNetwork(network);
 
             _spentCoins = transactionResponse.SpentCoins;

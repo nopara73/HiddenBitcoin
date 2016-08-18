@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using Newtonsoft.Json.Linq;
@@ -13,23 +14,23 @@ namespace HiddenBitcoin.DataClasses
         Hour
     }
 
-    public static class FeesPerBytes
+    internal static class FeesPerBytes
     {
-        internal static bool Set;
+        internal static DateTimeOffset LastUpdated;
 
-        public static decimal Fastest;
-        public static decimal HalfHour;
-        public static decimal Hour;
+        internal static decimal Fastest;
+        internal static decimal HalfHour;
+        internal static decimal Hour;
     }
 
     public static class FeeApi
     {
         public static decimal GetRecommendedFee(int transactionSizeInBytes, FeeType feeType = FeeType.Fastest)
         {
-            if (!FeesPerBytes.Set)
+            if (FeesPerBytes.LastUpdated == default(DateTimeOffset)
+                || DateTimeOffset.Now - FeesPerBytes.LastUpdated > TimeSpan.FromSeconds(7) )
             {
                 UpdateFeesSync();
-                PeriodicUpdate();
             }
 
             decimal feeInSatoshi;
@@ -75,19 +76,9 @@ namespace HiddenBitcoin.DataClasses
                     FeesPerBytes.Fastest = json.Value<decimal>("fastestFee");
                     FeesPerBytes.HalfHour = json.Value<decimal>("halfHourFee");
                     FeesPerBytes.Hour = json.Value<decimal>("hourFee");
-                    FeesPerBytes.Set = true;
+                    FeesPerBytes.LastUpdated = DateTimeOffset.Now;
                     return;
                 }
-            }
-        }
-
-        // ReSharper disable once FunctionNeverReturns
-        private static async void PeriodicUpdate()
-        {
-            while (true)
-            {
-                await Task.Delay(TimeSpan.FromSeconds(7));
-                UpdateFeesSync();
             }
         }
     }

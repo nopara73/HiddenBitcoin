@@ -37,8 +37,7 @@ namespace Tutorials
         {
             var monitor = new HttpMonitor(Network.TestNet);
 
-            var privateKey =
-                "tprv8f3GDAef8nhKvQbC5KGEerqDGB2s2KgMNHS4kLDXXP7c8M6ZcxyEzyvsVA9C1ss9Fj5QEiCiKbyEfD97duhXjc2he58dDicMtLs3YfwNJb2";
+            // var privateKey = "tprv8f3GDAef8nhKvQbC5KGEerqDGB2s2KgMNHS4kLDXXP7c8M6ZcxyEzyvsVA9C1ss9Fj5QEiCiKbyEfD97duhXjc2he58dDicMtLs3YfwNJb2";
             var address = "miLGbZvQ5sEd5BKCPXjEJzknMdENuFEzCy";
 
             var bal = monitor.GetAddressBalanceInfo(address);

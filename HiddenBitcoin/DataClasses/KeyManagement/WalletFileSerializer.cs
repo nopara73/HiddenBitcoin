@@ -23,7 +23,7 @@ namespace HiddenBitcoin.DataClasses.KeyManagement
             string network)
         {
             var content =
-                JsonConvert.SerializeObject(new WalletFileSerializer(encryptedBitcoinPrivateKey, chainCode, network));
+                JsonConvert.SerializeObject(new WalletFileSerializer(encryptedBitcoinPrivateKey, chainCode, network), Formatting.Indented);
 
             if (File.Exists(walletFilePath))
                 throw new Exception("WalletFileAlreadyExists");

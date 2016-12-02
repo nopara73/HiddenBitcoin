@@ -60,7 +60,7 @@ namespace HiddenBitcoin.DataClasses.KeyManagement
         {
             var startPath = NormalHdPath;
 
-            var keyPath = new KeyPath(startPath + "/" + index);
+            var keyPath = new KeyPath(startPath + "/" + index + @"'");
             var foo = _seedPrivateKey.Derive(keyPath).GetWif(_network);
             return new PrivateKeyAddressPair
             {

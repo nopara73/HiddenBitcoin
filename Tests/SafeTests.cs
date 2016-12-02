@@ -23,7 +23,7 @@ namespace Tests
 
             var recoverdSafe = Safe.Recover(mnemonic, password, "recoveredTestWallet.dat", network);
             Assert.Equal(network, recoverdSafe.Network);
-
+			
             safe.DeleteWalletFile();
             recoverdSafe.DeleteWalletFile();
         }

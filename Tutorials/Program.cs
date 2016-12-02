@@ -22,15 +22,15 @@ namespace Tutorials
     {
         private static void Main()
         {
-            //Part1(); // Storing keys
-            //Part2Lesson1(); // Monitoring keys using HTTP
-            //Part2Lesson2(); // Monitoring safes using HTTP
+			//Part1(); // Storing keys
+			//Part2Lesson1(); // Monitoring keys using HTTP
+			//Part2Lesson2(); // Monitoring safes using HTTP
 
-            //TemporarilyTestHttpSafeMonitor();
-            //TemporarilyTestHttpMonitor();
-            //TemporarilySendTest();
+			//TemporarilyTestHttpSafeMonitor();
+			TemporarilyTestHttpMonitor();
+			//TemporarilySendTest();
 
-            ReadLine();
+			ReadLine();
         }
 
         private static void TemporarilyTestHttpMonitor()

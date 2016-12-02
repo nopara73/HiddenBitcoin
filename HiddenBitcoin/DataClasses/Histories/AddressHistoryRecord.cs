@@ -30,7 +30,8 @@ namespace HiddenBitcoin.DataClasses.Histories
                     let address =
                         coin.GetScriptCode().GetDestinationAddress(new BitcoinPubKeyAddress(Address).Network).ToWif()
                     where address == Address
-                    select coin).Aggregate(amount, (current, coin) => current - coin.Amount.ToDecimal(MoneyUnit.BTC));
+                    select coin)
+					.Aggregate(amount, (current, coin) => current - coin.Amount.ToDecimal(MoneyUnit.BTC));
             }
         }
 
